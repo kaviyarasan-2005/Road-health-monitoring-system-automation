@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report Pothole</title>
+    <link rel="stylesheet" href="/Website/frontend/styles/publicStyle.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Report a Pothole</h1>
+
+    <form id="reportForm">
+        
+        <label>Upload Image</label>
+        <input type="file" id="imageInput" accept="image/*" required>
+        <img id="preview" style="display:none;" />
+
+        <label>Description (Optional)</label>
+        <textarea id="description" placeholder="Describe the issue..."></textarea>
+
+        <label>Location</label>
+        <input type="text" id="location" readonly>
+
+        <button type="button" onclick="getLocation()">Get Location</button>
+        <button type="submit">Submit Report</button>
+    </form>
+
+    <p id="message"></p>
+</div>
+
+<script src="/Website/frontend/scripts/publicsScript.js"></script>
+</body>
+</html>

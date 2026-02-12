@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Road Health Monitoring - Admin</title>
+    <link rel="stylesheet" href="/Website/frontend/styles/adminStyle.css">
+
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Road Monitor</h2>
+        <ul>
+            <li>Dashboard</li>
+            <li>Reports</li>
+            <li>Analytics</li>
+            <li>Logout</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Admin Dashboard</h1>
+        </header>
+
+        <div class="cards">
+            <div class="card total">
+                <h3>Total Reports</h3>
+                <p id="totalCount">0</p>
+            </div>
+
+            <div class="card pending">
+                <h3>Pending</h3>
+                <p id="pendingCount">0</p>
+            </div>
+
+            <div class="card resolved">
+                <h3>Resolved</h3>
+                <p id="resolvedCount">0</p>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Recent Reports</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTable">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script src="/Website/frontend/scripts/adminScript.js"></script>
+</body>
+</html>
