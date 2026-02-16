@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analytics - Road Monitoring</title>
+    <link rel="stylesheet" href="../../styles/adminanalytics.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Road Health Analytics</h1>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Total Reports</h3>
+            <p id="totalReports">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Pending Reports</h3>
+            <p id="pendingReports">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Resolved Reports</h3>
+            <p id="resolvedReports">0</p>
+        </div>
+    </div>
+
+    <div class="charts">
+        <div class="chart-box">
+            <h2>Monthly Reports</h2>
+            <canvas id="monthlyChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <h2>Status Distribution</h2>
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script src="../../scripts/adminanalytics.js"></script>
+</body>
+</html>

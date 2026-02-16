@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Reports - Road Monitoring</title>
+    <link rel="stylesheet" href="../../styles/adminreport.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>All Pothole Reports</h1>
+
+    <div class="filter-section">
+        <select id="statusFilter">
+            <option value="All">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Resolved">Resolved</option>
+        </select>
+        <button onclick="filterReports()">Filter</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Image</th>
+                <th>Location</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="reportTable">
+        </tbody>
+    </table>
+</div>
+
+<script src="../../scripts/adminreport.js"></script>
+</body>
+</html>

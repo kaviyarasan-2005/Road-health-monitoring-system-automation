@@ -1,8 +1,14 @@
 body {
+    overflow: hidden;
     margin: 0;
     font-family: Arial, sans-serif;
     display: flex;
     background: #f4f6f9;
+}
+
+li>a{
+    text-decoration: none;
+    color: white;
 }
 
 .sidebar {
