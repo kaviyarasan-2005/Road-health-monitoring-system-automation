@@ -1,7 +1,7 @@
 let reports = [
     {
         id: 1,
-        image: "https://via.placeholder.com/80",
+        image: "../../assets/images.jpg",
         location: "12.9716, 77.5946",
         description: "Large pothole near signal",
         status: "Pending"
