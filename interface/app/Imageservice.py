@@ -21,10 +21,8 @@ def predict():
 
     results = model(filepath)
 
-    # Example: Count detections
     num_detections = len(results[0].boxes)
 
-    # You can calculate damage severity based on bounding box area
     damage_percentage = min(num_detections * 20, 100)
 
     return jsonify({
