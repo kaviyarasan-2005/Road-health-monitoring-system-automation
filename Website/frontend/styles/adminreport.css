@@ -15,6 +15,10 @@ li>a{
     padding: 20px;
     height: 100vh;
 }
+.main-content {
+    flex: 1;
+    padding: 20px;
+}
 
 .sidebar h2 {
     margin-bottom: 30px;
@@ -29,6 +33,14 @@ li>a{
     margin: 15px 0;
     cursor: pointer;
 }
+.sidebar {
+    width: 220px;
+    background: #1e293b;
+    color: white;
+    padding: 20px;
+    height: 100vh;
+}
+
 
 .container {
     flex: 1;
