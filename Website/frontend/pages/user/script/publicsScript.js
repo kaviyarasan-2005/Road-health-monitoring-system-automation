@@ -1,12 +1,17 @@
 const form = document.getElementById("reportForm");
 const message = document.getElementById("message");
 
-const submitBtn = document.getElementById("submitBtn");
+async function getReport() {
 
-submitBtn.addEventListener("click", async function () {
     console.log("event start");
+
     const fileInput = document.getElementById("imageInput");
     const file = fileInput.files[0];
+
+    if (!file) {
+        message.innerText = "Please select an image first.";
+        return;
+    }
 
     const formData = new FormData();
     formData.append("image", file);
@@ -14,21 +19,22 @@ submitBtn.addEventListener("click", async function () {
     message.innerText = "Analyzing image...";
 
     try {
-        const data = await fetch("http://127.0.0.1:5000/api/public/detect", {
+        const response = await fetch("http://127.0.0.1:5000/api/public/detect", {
             method: "POST",
             body: formData
         });
-        // const data = await response.json();
-        console.log(data.damage_percentage+" this is percentage");
+
+        const data = await response.json();
+
+        console.log(data);
+
         message.style.color = "green";
         message.innerText =
-            `Damage Level: ${data.damage_percentage}% 
-             | Potholes Detected: ${data.detections}`;
+            `Damage Level: ${data.damage_percentage}% | Potholes Detected: ${data.detections}`;
 
     } catch (error) {
-        console.log(error+" this is err");
+        console.log(error);
         message.style.color = "red";
         message.innerText = "Error connecting to AI server.";
     }
-
-});
+}
