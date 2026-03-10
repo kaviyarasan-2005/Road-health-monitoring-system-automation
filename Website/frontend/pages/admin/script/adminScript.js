@@ -1,6 +1,21 @@
 
 const reports = [
     { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
     { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" }
 ];
 
