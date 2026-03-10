@@ -36,7 +36,7 @@ reports.forEach(report => {
             <td><img src="${report.image}" width="80"/></td>
             <td>${report.location}</td>
             <td>${report.status}</td>
-            <td><button onclick="markResolved(${report.id})">Resolve</button></td>
+            <td><button onclick="markResolved(${report.id})">View</button></td>
         </tr>
     `;
     table.innerHTML += row;
