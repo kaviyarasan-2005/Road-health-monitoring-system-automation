@@ -91,37 +91,6 @@ Already have an account? <a href="login.html">Login</a>
 
 </div>
 
-<script>
-
-const form = document.getElementById("signupForm");
-
-form.addEventListener("submit", async (e)=>{
-
-e.preventDefault();
-
-const name = document.getElementById("name").value;
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
-
-const res = await fetch("http://localhost:3000/api/auth/signup",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({name,email,password})
-
-});
-
-const data = await res.json();
-
-document.getElementById("message").innerText = data.message;
-
-});
-
-</script>
-
+<script src="signup.js"></script>
 </body>
 </html>
