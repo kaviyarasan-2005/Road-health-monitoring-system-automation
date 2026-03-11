@@ -1,44 +1,53 @@
 const form = document.getElementById("loginForm");
 const message = document.getElementById("message");
 
-form.addEventListener("submit", async (e)=>{
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-e.preventDefault();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+  try {
 
-try{
+    const res = await fetch("http://localhost:3000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-const res = await fetch("http://localhost:3000/api/auth/login",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({email,password})
-});
+    const data = await res.json();
 
-const data = await res.json();
+    if (res.ok) {
 
-if(data.message==="Login successful"){
+      message.style.color = "green";
+      message.innerText = "Login successful";
 
-message.style.color="green";
-message.innerText="Login successful";
+      setTimeout(() => {
 
-window.location.href="../admin/admin.html";
+        if (data.role === "admin") {
+          window.location.href = "./admin/admin.html";
+        } 
+        else if (data.role === "public") {
+          window.location.href = "./user/public.html";
+        }
 
-}else{
+      }, 1000);
 
-message.style.color="red";
-message.innerText=data.message;
+    } else {
 
-}
+      message.style.color = "red";
+      message.innerText = data.message || "Invalid login";
 
-}catch(err){
+    }
 
-message.style.color="red";
-message.innerText="Server error";
+  } catch (err) {
 
-}
+    console.error(err);
+    message.style.color = "red";
+    message.innerText = "Server error";
+
+  }
 
 });
