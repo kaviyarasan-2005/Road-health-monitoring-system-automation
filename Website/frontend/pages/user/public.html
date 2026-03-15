@@ -1,34 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Report Pothole</title>
-    <link rel="stylesheet" href="./style/publicStyle.css">
+<title>Public Dashboard</title>
+<link rel="stylesheet" href="./style/publicStyle.css">
 </head>
+
 <body>
 
 <div class="container">
-    <h1>Report a Pothole</h1>
 
-    <form id="reportForm">
-        
-        <label>Upload Image</label>
-        <input type="file" id="imageInput" accept="image/*" required>
-        <img id="preview" style="display:none;" />
+<h1>Public Dashboard</h1>
 
-        <label>Description (Optional)</label>
-        <textarea id="description" placeholder="Describe the issue..."></textarea>
+<button id="openReportBtn" class="btn">New Report</button>
 
-        <label>Location</label>
-        <input type="text" id="location" readonly>
+<h2>My Reports</h2>
 
-        <button type="button" onclick="getLocation()">Get Location</button>
-        <button type="button" id="submitBtn">Submit Report</button>
-    </form>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Image</th>
+<th>Description</th>
+<th>Location</th>
+<th>Status</th>
+</tr>
+</thead>
 
-    <p id="message"></p>
+<tbody id="reportTable"></tbody>
+
+</table>
+
+</div>
+
+<!-- Modal -->
+<div id="reportModal" class="modal">
+
+<div class="modal-content">
+
+<span id="closeModal" class="close">&times;</span>
+
+<h2>Submit New Report</h2>
+
+<form id="reportForm">
+
+<label>Image</label>
+<input type="file" id="imageInput" required>
+
+<label>Description</label>
+<textarea id="description"></textarea>
+
+<label>Location</label>
+<div class="location-box">
+  <input type="text" id="location" placeholder="Location will appear here">
+
+  <button type="button" id="getLocationBtn" class="location-btn">
+    Get Location
+  </button>
+</div>
+<br>
+
+<button type="submit" class="btn">Submit Report</button>
+
+</form>
+
+<p id="message"></p>
+
+</div>
 </div>
 
 <script src="./script/publicsScript.js"></script>
+
 </body>
 </html>

@@ -1,9 +1,22 @@
 
 const reports = [
     { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
+    { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" },
+    { id: 1, location: "12.9716, 77.5946", status: "Pending", image: "https://via.placeholder.com/80" },
     { id: 2, location: "13.0827, 80.2707", status: "Resolved", image: "https://via.placeholder.com/80" }
 ];
-
 const table = document.getElementById("reportTable");
 
 let total = reports.length;
@@ -21,7 +34,7 @@ reports.forEach(report => {
             <td><img src="${report.image}" width="80"/></td>
             <td>${report.location}</td>
             <td>${report.status}</td>
-            <td><button onclick="markResolved(${report.id})">Resolve</button></td>
+            <td><button onclick="markResolved(${report.id})">View</button></td>
         </tr>
     `;
     table.innerHTML += row;
