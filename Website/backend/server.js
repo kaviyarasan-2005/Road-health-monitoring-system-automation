@@ -7,6 +7,8 @@ const db = require("./config/db");
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const FormData = require("form-data");
+const fs = require("fs");
 
 const app = express();
 
@@ -18,7 +20,16 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 // File upload setup
-const upload = multer({ dest: "uploads/" });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
 
 /* =============================
    AUTH ROUTES
@@ -30,13 +41,20 @@ app.use("/api/auth", authRoutes);
 ============================= */
 app.post("/api/public/report", upload.single("image"), async (req, res) => {
   try {
-    const imagePath = req.file.path;
 
-    // Call AI model API
+    const imagePath = req.file.path;
+    const description = req.body.description;
+    const location = req.body.location;
+
+    // Send image to AI model
+    const formData = new FormData();
+    formData.append("image", fs.createReadStream(imagePath));
+
     const aiResponse = await axios.post(
       "http://127.0.0.1:5000/api/public/detect",
+      formData,
       {
-        image: imagePath,
+        headers: formData.getHeaders()
       }
     );
 
@@ -44,9 +62,10 @@ app.post("/api/public/report", upload.single("image"), async (req, res) => {
 
     // Store report in database
     db.query(
-      "INSERT INTO reports (image_url, damage_percentage, status) VALUES (?, ?, ?)",
-      [imagePath, damage, "Pending"],
+      "INSERT INTO reports (image_url, description, location, damage_percentage, status) VALUES (?, ?, ?, ?, ?)",
+      [imagePath, description, location, damage, "Pending"],
       (err, result) => {
+
         if (err) {
           console.error(err);
           return res.status(500).json({ error: "Database error" });
@@ -54,16 +73,19 @@ app.post("/api/public/report", upload.single("image"), async (req, res) => {
 
         res.json({
           message: "Report stored successfully",
-          damage_percentage: damage,
+          damage_percentage: damage
         });
+
       }
     );
+
   } catch (error) {
+
     console.error(error);
     res.status(500).json({ error: "Detection failed" });
+
   }
 });
-
 /* =============================
    TEST ROUTE
 ============================= */
