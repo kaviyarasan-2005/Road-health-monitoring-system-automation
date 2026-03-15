@@ -74,6 +74,38 @@ app.get("/api/admin/reports", (req, res) => {
   });
 
 });
+app.put("/api/admin/resolve/:id",(req,res)=>{
+
+const id = req.params.id;
+
+db.query(
+"UPDATE reports SET status='Resolved' WHERE id=?",
+[id],
+(err,result)=>{
+
+if(err) return res.status(500).json(err);
+
+res.json({message:"Report resolved"});
+
+});
+
+});
+app.delete("/api/admin/delete/:id",(req,res)=>{
+
+const id = req.params.id;
+
+db.query(
+"DELETE FROM reports WHERE id=?",
+[id],
+(err,result)=>{
+
+if(err) return res.status(500).json(err);
+
+res.json({message:"Report deleted"});
+
+});
+
+});
 
     const damage = aiResponse.data.damage_percentage;
 
