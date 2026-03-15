@@ -57,6 +57,23 @@ app.post("/api/public/report", upload.single("image"), async (req, res) => {
         headers: formData.getHeaders()
       }
     );
+    /* =============================
+   GET ALL REPORTS
+============================= */
+app.get("/api/admin/reports", (req, res) => {
+
+  db.query("SELECT * FROM reports ORDER BY id DESC", (err, results) => {
+
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+
+  });
+
+});
 
     const damage = aiResponse.data.damage_percentage;
 
