@@ -3,93 +3,483 @@
 <head>
 <meta charset="UTF-8">
 <title>Login - Road Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
-
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:linear-gradient(120deg,#4facfe,#00f2fe);
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+:root {
+  --blue-bright: #00b4ff;
+  --blue-mid: #0090e0;
+  --blue-glow: rgba(0,180,255,0.35);
+  --teal: #00e5ff;
+  --bg: #090d12;
+  --surface: #0f1620;
+  --surface-2: #172030;
+  --border: rgba(0,180,255,0.15);
+  --text: #e0eefd;
+  --muted: #4e718c;
 }
 
-.container{
-    background:white;
-    padding:40px;
-    width:350px;
-    border-radius:10px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.2);
-    text-align:center;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
 }
 
-h2{
-    margin-bottom:25px;
+/* Animated background grid */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,180,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,180,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridShift 20s linear infinite;
+  pointer-events: none;
+}
+@keyframes gridShift {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(40px,40px); }
 }
 
-input{
-    width:100%;
-    padding:12px;
-    margin:10px 0;
-    border-radius:6px;
-    border:1px solid #ccc;
+/* Road stripe decoration */
+.road-stripe {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 6px;
+  background: repeating-linear-gradient(90deg,
+    transparent 0px, transparent 30px,
+    rgba(0,180,255,0.25) 30px, rgba(0,180,255,0.25) 60px
+  );
+  animation: roadScroll 2s linear infinite;
+}
+@keyframes roadScroll {
+  from { background-position: 0 0; }
+  to   { background-position: -60px 0; }
 }
 
-button{
-    width:100%;
-    padding:12px;
-    background:#4facfe;
-    border:none;
-    color:white;
-    font-size:16px;
-    border-radius:6px;
-    cursor:pointer;
+/* Glowing orbs */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: orbFloat 8s ease-in-out infinite alternate;
+}
+.orb-1 {
+  width: 380px; height: 380px;
+  background: radial-gradient(circle, rgba(0,144,224,0.18) 0%, transparent 70%);
+  top: -120px; right: -100px;
+  animation-delay: 0s;
+}
+.orb-2 {
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%);
+  bottom: -60px; left: -80px;
+  animation-delay: -3s;
+}
+@keyframes orbFloat {
+  0%   { transform: translate(0,0) scale(1); }
+  100% { transform: translate(25px,25px) scale(1.1); }
 }
 
-button:hover{
-    background:#2d8cff;
+/* Scan line */
+.scan-line {
+  position: fixed;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,180,255,0.3), transparent);
+  animation: scanDown 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes scanDown {
+  0%   { top: -2px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100vh; opacity: 0; }
 }
 
-.link{
-    margin-top:15px;
+/* Card */
+.card {
+  position: relative;
+  width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 48px 44px;
+  overflow: hidden;
+  animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-#message{
-    margin-top:10px;
-    font-weight:bold;
+.card::before, .card::after {
+  content: '';
+  position: absolute;
+  border-color: var(--blue-bright);
+  border-style: solid;
+  width: 24px; height: 24px;
+  opacity: 0.6;
+}
+.card::before { top: 14px; left: 14px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+.card::after  { bottom: 14px; right: 14px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+
+.card-shimmer {
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,180,255,0.03), transparent);
+  animation: shimmer 4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shimmer {
+  0%   { left: -100%; }
+  100% { left: 200%; }
 }
 
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  animation: fadeUp 0.5s 0.1s both;
+}
+.brand-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--blue-mid), var(--teal));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 20px var(--blue-glow);
+}
+.brand-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+.brand-name span { color: var(--blue-bright); }
+
+/* Heading */
+.heading {
+  margin-bottom: 8px;
+  animation: fadeUp 0.5s 0.2s both;
+}
+.heading h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 3px;
+  color: var(--text);
+  line-height: 1;
+}
+.heading p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 300;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--blue-bright);
+  background: rgba(0,180,255,0.08);
+  border: 1px solid rgba(0,180,255,0.2);
+  border-radius: 20px;
+  padding: 4px 10px;
+  margin-top: 10px;
+  letter-spacing: 0.5px;
+  animation: fadeUp 0.5s 0.25s both;
+}
+.status-dot {
+  width: 6px; height: 6px;
+  background: var(--blue-bright);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 6px var(--blue-bright);
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+  animation: fadeUp 0.5s 0.28s both;
+}
+
+/* Fields */
+.field {
+  margin-bottom: 16px;
+  animation: fadeUp 0.5s both;
+}
+.field:nth-child(1) { animation-delay: 0.32s; }
+.field:nth-child(2) { animation-delay: 0.37s; }
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+
+.input-wrap { position: relative; }
+
+.input-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 15px;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.field input {
+  width: 100%;
+  padding: 13px 14px 13px 42px;
+  background: var(--surface-2);
+  border: 1px solid rgba(0,180,255,0.12);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.field input::placeholder { color: rgba(78,113,140,0.6); }
+.field input:focus {
+  border-color: rgba(0,180,255,0.5);
+  box-shadow: 0 0 0 3px rgba(0,180,255,0.08), inset 0 0 12px rgba(0,180,255,0.04);
+  background: #1a2535;
+}
+
+.focus-line {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  height: 2px;
+  width: 0;
+  background: var(--blue-bright);
+  border-radius: 0 0 10px 10px;
+  transition: width 0.3s ease;
+}
+.input-wrap:focus-within .focus-line { width: calc(100% - 20px); }
+.input-wrap:focus-within .input-icon { color: var(--blue-bright); }
+
+/* Forgot password */
+.forgot {
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 16px;
+  animation: fadeUp 0.5s 0.42s both;
+}
+.forgot a {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.forgot a:hover { color: var(--blue-bright); }
+
+/* Button */
+.btn-login {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, var(--blue-mid), var(--blue-bright));
+  border: none;
+  border-radius: 10px;
+  color: #040d18;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(0,180,255,0.25);
+  animation: fadeUp 0.5s 0.47s both;
+}
+.btn-login::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,180,255,0.4); }
+.btn-login:hover::before { opacity: 1; }
+.btn-login:active { transform: translateY(0); }
+
+.btn-login .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  transform: scale(0);
+  animation: rippleAnim 0.6s linear;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* Loading state */
+.btn-login.loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+.btn-login.loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  animation: btnShimmer 1s infinite;
+}
+@keyframes btnShimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Footer */
+.footer-link {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 13px;
+  color: var(--muted);
+  animation: fadeUp 0.5s 0.52s both;
+}
+.footer-link a {
+  color: var(--blue-bright);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(0,180,255,0.3);
+  padding-bottom: 1px;
+  transition: border-color 0.2s;
+}
+.footer-link a:hover { border-color: var(--blue-bright); }
+
+#message {
+  text-align: center;
+  font-size: 13px;
+  min-height: 20px;
+  margin-top: 14px;
+  animation: fadeUp 0.5s 0.55s both;
+}
+#message.success { color: #00f593; }
+#message.error   { color: #ff6b6b; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>
-
 </head>
-
 <body>
 
-<div class="container">
+<div class="bg-grid"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="scan-line"></div>
+<div class="road-stripe"></div>
 
-<h2>Login</h2>
+<div class="card">
+  <div class="card-shimmer"></div>
 
-<form id="loginForm">
+  <div class="brand">
+    <div class="brand-icon">🛣️</div>
+    <div class="brand-name">ROAD<span>MONITOR</span></div>
+  </div>
 
-<input type="email" id="email" placeholder="Email" required>
+  <div class="heading">
+    <h1>WELCOME BACK</h1>
+    <p>Sign in to access your monitoring dashboard.</p>
+  </div>
 
-<input type="password" id="password" placeholder="Password" required>
+  <div class="status-badge">
+    <span class="status-dot"></span>
+    NETWORK ACTIVE — 142 SENSORS ONLINE
+  </div>
 
-<button type="submit">Login</button>
+  <div class="divider"></div>
 
-<p class="link">
-Don't have an account? <a href="index.html">Signup</a>
-</p>
+  <form id="loginForm">
+    <div class="field">
+      <label>Email Address</label>
+      <div class="input-wrap">
+        <input type="email" id="email" placeholder="you@example.com" required autocomplete="off">
+        <span class="input-icon">✉️</span>
+        <div class="focus-line"></div>
+      </div>
+    </div>
 
-</form>
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <input type="password" id="password" placeholder="Enter your password" required>
+        <span class="input-icon">🔒</span>
+        <div class="focus-line"></div>
+      </div>
+    </div>
 
-<p id="message"></p>
+    <div class="forgot"><a href="#">Forgot password?</a></div>
 
+    <button type="submit" class="btn-login">ACCESS DASHBOARD</button>
+  </form>
+
+  <p class="footer-link">No account yet? <a href="index.html">Create one</a></p>
+  <p id="message"></p>
 </div>
 
-<script src="lognin.js"></script>
+<script>
+// Ripple
+document.querySelector('.btn-login').addEventListener('click', function(e) {
+  const btn = this;
+  const ripple = document.createElement('span');
+  ripple.classList.add('ripple');
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
+});
 
+// Submit
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const btn = document.querySelector('.btn-login');
+  const msg = document.getElementById('message');
+  btn.classList.add('loading');
+  btn.textContent = 'AUTHENTICATING...';
+  msg.className = '';
+  msg.textContent = '';
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    btn.textContent = 'ACCESS DASHBOARD';
+    msg.className = 'success';
+    msg.textContent = '✓ Login successful! Redirecting…';
+  }, 1800);
+});
+</script>
+<script src="lognin.js"></script>
 </body>
 </html>

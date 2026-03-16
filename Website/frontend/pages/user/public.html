@@ -1,74 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Public Dashboard</title>
-<link rel="stylesheet" href="./style/publicStyle.css">
+<meta charset="UTF-8">
+<title>Public Dashboard - Road Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style/publicStyle.css">
 </head>
 
 <body>
 
+<div class="bg-grid"></div>
+
+<!-- Top Nav Bar -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="brand-icon">🛣️</div>
+    <span class="brand-name">ROAD<span class="accent">MONITOR</span></span>
+  </div>
+  <div class="navbar-right">
+    <span class="nav-status">
+      <span class="status-dot"></span>
+      LIVE
+    </span>
+    <div class="nav-avatar">U</div>
+  </div>
+</nav>
+
+<!-- Main Content -->
 <div class="container">
 
-<h1>Public Dashboard</h1>
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">PUBLIC DASHBOARD</h1>
+      <p class="page-subtitle">Track and manage your road incident reports</p>
+    </div>
+    <button id="openReportBtn" class="btn-primary">
+      <span class="btn-icon">＋</span> New Report
+    </button>
+  </div>
 
-<button id="openReportBtn" class="btn">New Report</button>
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value" id="totalCount">0</div>
+      <div class="stat-label">Total Reports</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value pending" id="pendingCount">0</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value resolved" id="resolvedCount">0</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </div>
 
-<h2>My Reports</h2>
+  <!-- Reports Section -->
+  <div class="section-header">
+    <h2 class="section-title">MY REPORTS</h2>
+    <div class="section-line"></div>
+  </div>
 
-<table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Image</th>
-<th>Description</th>
-<th>Location</th>
-<th>Status</th>
-</tr>
-</thead>
-
-<tbody id="reportTable"></tbody>
-
-</table>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Image</th>
+          <th>Description</th>
+          <th>Location</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="reportTable">
+        <!-- Rows injected by JS -->
+      </tbody>
+    </table>
+    <div class="table-empty" id="emptyState">
+      <div class="empty-icon">📋</div>
+      <p>No reports submitted yet.<br>Click <strong>New Report</strong> to get started.</p>
+    </div>
+  </div>
 
 </div>
 
-<!-- Modal -->
+<!-- Modal Overlay -->
 <div id="reportModal" class="modal">
+  <div class="modal-content">
 
-<div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <span class="modal-tag">NEW</span>
+        <h2 class="modal-title">SUBMIT REPORT</h2>
+      </div>
+      <button id="closeModal" class="close-btn" aria-label="Close">&times;</button>
+    </div>
 
-<span id="closeModal" class="close">&times;</span>
+    <form id="reportForm">
 
-<h2>Submit New Report</h2>
+      <div class="form-group">
+        <label class="form-label">Image</label>
+        <div class="file-drop" id="fileDrop">
+          <input type="file" id="imageInput" accept="image/*" required>
+          <div class="file-drop-inner">
+            <span class="file-icon">📷</span>
+            <span class="file-text">Click to upload or drag & drop</span>
+            <span class="file-hint">PNG, JPG up to 10MB</span>
+          </div>
+          <div class="file-preview" id="filePreview"></div>
+        </div>
+      </div>
 
-<form id="reportForm">
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="description" placeholder="Describe the road issue in detail…"></textarea>
+      </div>
 
-<label>Image</label>
-<input type="file" id="imageInput" required>
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <div class="location-row">
+          <input type="text" id="location" placeholder="Location will appear here" readonly>
+          <button type="button" id="getLocationBtn" class="btn-location">
+            📍 Detect
+          </button>
+        </div>
+      </div>
 
-<label>Description</label>
-<textarea id="description"></textarea>
+      <button type="submit" class="btn-submit">Submit Report</button>
 
-<label>Location</label>
-<div class="location-box">
-  <input type="text" id="location" placeholder="Location will appear here">
+    </form>
 
-  <button type="button" id="getLocationBtn" class="location-btn">
-    Get Location
-  </button>
+    <p id="message"></p>
+
+  </div>
 </div>
-<br>
 
-<button type="submit" class="btn">Submit Report</button>
-
-</form>
-
-<p id="message"></p>
-
-</div>
-</div>
-
-<script src="./script/publicsScript.js"></script>
-
+<script src="script/publicsScript.js"></script>
 </body>
 </html>

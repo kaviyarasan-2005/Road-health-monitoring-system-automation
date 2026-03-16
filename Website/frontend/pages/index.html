@@ -3,94 +3,476 @@
 <head>
 <meta charset="UTF-8">
 <title>Signup - Road Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
-
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:linear-gradient(120deg,#43e97b,#38f9d7);
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+:root {
+  --green-bright: #00f593;
+  --green-mid: #00c97a;
+  --green-dark: #00875a;
+  --teal: #00e5c0;
+  --bg: #0a0f0d;
+  --surface: #111a15;
+  --surface-2: #1a2720;
+  --border: rgba(0,245,147,0.15);
+  --text: #e8f5ee;
+  --muted: #6b8c77;
 }
 
-.container{
-    background:white;
-    padding:40px;
-    width:350px;
-    border-radius:10px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.2);
-    text-align:center;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
 }
 
-h2{
-    margin-bottom:25px;
+/* Animated background grid */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,245,147,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,147,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridShift 20s linear infinite;
+  pointer-events: none;
 }
 
-input{
-    width:100%;
-    padding:12px;
-    margin:10px 0;
-    border-radius:6px;
-    border:1px solid #ccc;
+@keyframes gridShift {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(40px, 40px); }
 }
 
-button{
-    width:100%;
-    padding:12px;
-    background:#43e97b;
-    border:none;
-    color:white;
-    font-size:16px;
-    border-radius:6px;
-    cursor:pointer;
+/* Glowing orbs */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: orbFloat 8s ease-in-out infinite alternate;
+}
+.orb-1 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,245,147,0.18) 0%, transparent 70%);
+  top: -100px; left: -100px;
+  animation-delay: 0s;
+}
+.orb-2 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(0,229,192,0.12) 0%, transparent 70%);
+  bottom: -80px; right: -80px;
+  animation-delay: -4s;
 }
 
-button:hover{
-    background:#2ecc71;
+@keyframes orbFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, 30px) scale(1.1); }
 }
 
-.link{
-    margin-top:15px;
+/* Scanning line effect */
+.scan-line {
+  position: fixed;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,245,147,0.3), transparent);
+  animation: scanDown 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes scanDown {
+  0% { top: -2px; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100vh; opacity: 0; }
 }
 
-#message{
-    margin-top:10px;
-    font-weight:bold;
+/* Card */
+.card {
+  position: relative;
+  width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 48px 44px;
+  animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+  overflow: hidden;
 }
 
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Corner accent lines */
+.card::before, .card::after {
+  content: '';
+  position: absolute;
+  border-color: var(--green-bright);
+  border-style: solid;
+  width: 24px; height: 24px;
+  opacity: 0.6;
+}
+.card::before { top: 14px; left: 14px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+.card::after  { bottom: 14px; right: 14px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+
+/* Inner shimmer sweep */
+.card-shimmer {
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,245,147,0.03), transparent);
+  animation: shimmer 4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+/* Logo / brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  animation: fadeUp 0.5s 0.1s both;
+}
+
+.brand-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--green-bright), var(--teal));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 20px rgba(0,245,147,0.35);
+}
+
+.brand-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+.brand-name span { color: var(--green-bright); }
+
+/* Heading */
+.heading {
+  animation: fadeUp 0.5s 0.2s both;
+  margin-bottom: 8px;
+}
+.heading h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 3px;
+  color: var(--text);
+  line-height: 1;
+}
+.heading p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 300;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+  animation: fadeUp 0.5s 0.25s both;
+}
+
+/* Form fields */
+.field {
+  margin-bottom: 16px;
+  animation: fadeUp 0.5s both;
+}
+.field:nth-child(1) { animation-delay: 0.3s; }
+.field:nth-child(2) { animation-delay: 0.35s; }
+.field:nth-child(3) { animation-delay: 0.4s; }
+
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 16px;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.field input {
+  width: 100%;
+  padding: 13px 14px 13px 42px;
+  background: var(--surface-2);
+  border: 1px solid rgba(0,245,147,0.12);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+.field input::placeholder { color: rgba(107,140,119,0.6); }
+
+.field input:focus {
+  border-color: rgba(0,245,147,0.5);
+  box-shadow: 0 0 0 3px rgba(0,245,147,0.08), inset 0 0 12px rgba(0,245,147,0.04);
+  background: #1f2e25;
+}
+
+.field input:focus + .input-icon,
+.input-wrap:focus-within .input-icon {
+  color: var(--green-bright);
+}
+
+/* Rearrange icon to be after input in DOM but appear inside via absolute */
+.input-wrap input:focus ~ .focus-line {
+  width: 100%;
+}
+.focus-line {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  height: 2px;
+  width: 0;
+  background: var(--green-bright);
+  border-radius: 0 0 10px 10px;
+  transition: width 0.3s ease;
+}
+.input-wrap:focus-within .focus-line { width: calc(100% - 20px); }
+
+/* Password strength bar */
+.strength-bar {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.strength-bar.visible { opacity: 1; }
+.strength-seg {
+  flex: 1;
+  height: 3px;
+  background: var(--surface-2);
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+.strength-seg.weak   { background: #ff5555; }
+.strength-seg.fair   { background: #ffaa00; }
+.strength-seg.good   { background: #00c97a; }
+.strength-seg.strong { background: var(--green-bright); }
+
+/* CTA Button */
+.btn-signup {
+  width: 100%;
+  padding: 15px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, var(--green-mid), var(--green-bright));
+  border: none;
+  border-radius: 10px;
+  color: #051a0f;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(0,245,147,0.25);
+  animation: fadeUp 0.5s 0.45s both;
+}
+
+.btn-signup::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn-signup:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,245,147,0.4); }
+.btn-signup:hover::before { opacity: 1; }
+.btn-signup:active { transform: translateY(0); }
+
+/* Ripple */
+.btn-signup .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transform: scale(0);
+  animation: rippleAnim 0.6s linear;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* Footer link */
+.footer-link {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 13px;
+  color: var(--muted);
+  animation: fadeUp 0.5s 0.5s both;
+}
+.footer-link a {
+  color: var(--green-bright);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(0,245,147,0.3);
+  padding-bottom: 1px;
+  transition: border-color 0.2s;
+}
+.footer-link a:hover { border-color: var(--green-bright); }
+
+/* Message */
+#message {
+  text-align: center;
+  font-size: 13px;
+  min-height: 20px;
+  margin-top: 14px;
+  font-weight: 400;
+  animation: fadeUp 0.5s 0.55s both;
+}
+#message.success { color: var(--green-bright); }
+#message.error { color: #ff6b6b; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>
-
 </head>
-
 <body>
 
-<div class="container">
+<div class="bg-grid"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="scan-line"></div>
 
-<h2>Create Account</h2>
+<div class="card">
+  <div class="card-shimmer"></div>
 
-<form id="signupForm">
+  <div class="brand">
+    <div class="brand-icon">🛣️</div>
+    <div class="brand-name">ROAD<span>MONITOR</span></div>
+  </div>
 
-<input type="text" id="name" placeholder="Full Name" required>
+  <div class="heading">
+    <h1>CREATE ACCOUNT</h1>
+    <p>Join the network. Monitor roads in real time.</p>
+  </div>
 
-<input type="email" id="email" placeholder="Email" required>
+  <div class="divider"></div>
 
-<input type="password" id="password" placeholder="Password" required>
+  <form id="signupForm">
+    <div class="field">
+      <label>Full Name</label>
+      <div class="input-wrap">
+        <input type="text" id="name" placeholder="John Doe" required autocomplete="off">
+        <span class="input-icon">👤</span>
+        <div class="focus-line"></div>
+      </div>
+    </div>
 
-<button type="submit">Signup</button>
+    <div class="field">
+      <label>Email Address</label>
+      <div class="input-wrap">
+        <input type="email" id="email" placeholder="you@example.com" required autocomplete="off">
+        <span class="input-icon">✉️</span>
+        <div class="focus-line"></div>
+      </div>
+    </div>
 
-<p class="link">
-Already have an account? <a href="login.html">Login</a>
-</p>
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <input type="password" id="password" placeholder="Min. 8 characters" required>
+        <span class="input-icon">🔒</span>
+        <div class="focus-line"></div>
+      </div>
+      <div class="strength-bar" id="strengthBar">
+        <div class="strength-seg" id="s1"></div>
+        <div class="strength-seg" id="s2"></div>
+        <div class="strength-seg" id="s3"></div>
+        <div class="strength-seg" id="s4"></div>
+      </div>
+    </div>
 
-</form>
+    <button type="submit" class="btn-signup">GET STARTED</button>
+  </form>
 
-<p id="message"></p>
-
+  <p class="footer-link">Already have an account? <a href="login.html">Sign in</a></p>
+  <p id="message"></p>
 </div>
 
-<script src="signup.js"></script>
+<script>
+// Ripple effect
+document.querySelector('.btn-signup').addEventListener('click', function(e) {
+  const btn = this;
+  const ripple = document.createElement('span');
+  ripple.classList.add('ripple');
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
+});
+
+// Password strength
+const pwInput = document.getElementById('password');
+const bar = document.getElementById('strengthBar');
+const segs = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+
+pwInput.addEventListener('input', () => {
+  const pw = pwInput.value;
+  bar.classList.toggle('visible', pw.length > 0);
+
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+  const levels = ['weak','fair','good','strong'];
+  segs.forEach((s, i) => {
+    s.className = 'strength-seg';
+    if (i < score) s.classList.add(levels[score - 1]);
+  });
+});
+
+// Form submit
+document.getElementById('signupForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const msg = document.getElementById('message');
+  msg.className = 'success';
+  msg.textContent = '✓ Account created successfully!';
+});
+</script>
+<script src="signup.js  "></script>
 </body>
 </html>

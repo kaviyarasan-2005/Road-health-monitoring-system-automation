@@ -74,6 +74,19 @@ app.get("/api/admin/reports", (req, res) => {
   });
 
 });
+app.get("/api/public/reports", (req, res) => {
+
+db.query("SELECT * FROM reports ORDER BY id DESC", (err, results) => {
+
+if(err){
+return res.status(500).json({error:"Database error"});
+}
+
+res.json(results);
+
+});
+
+});
 app.put("/api/admin/resolve/:id",(req,res)=>{
 
 const id = req.params.id;
