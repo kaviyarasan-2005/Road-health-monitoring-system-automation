@@ -1,48 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>All Reports - Road Monitoring</title>
-    <link rel="stylesheet" href="./styles/adminreport.css">
+  <meta charset="UTF-8">
+  <title>Reports — Road Monitor Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/adminreport.css">
 </head>
 <body>
 
-       <div class="sidebar">
-        <h2>Road Monitor</h2>
-        <ul>
-            <li><a href="../admin/admin.html">Dashboard</a></li>
-            <li><a href="../admin/report.html">Reports</a></li>
-            <li><a href="">Logout</a></li>
-        </ul>
-    </div>
-<div class="container main-content">
-    <h1>All Pothole Reports</h1>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🛣️</div>
+    <span class="brand-name">ROAD<span class="accent">MONITOR</span></span>
+  </div>
 
-    <div class="filter-section">
-        <select id="statusFilter">
-            <option value="All">All</option>
-            <option value="Pending">Pending</option>
-            <option value="Resolved">Resolved</option>
-        </select>
-        <button onclick="filterReports()">Filter</button>
-    </div>
+  <div class="sidebar-section-label">NAVIGATION</div>
+  <ul class="sidebar-nav">
+    <li>
+      <a href="../admin/admin.html" class="nav-link">
+        <span class="nav-icon">⬛</span> Dashboard
+      </a>
+    </li>
+    <li>
+      <a href="../admin/report.html" class="nav-link active">
+        <span class="nav-icon">📋</span> Reports
+      </a>
+    </li>
+  </ul>
 
+  <div class="sidebar-section-label">SYSTEM</div>
+  <ul class="sidebar-nav">
+    <li>
+      <a href="../login.html" class="nav-link nav-logout">
+        <span class="nav-icon">⏻</span> Logout
+      </a>
+    </li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <div class="status-pill">
+      <span class="status-dot"></span> NETWORK LIVE
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main-content">
+
+  <div class="top-bar">
+    <div>
+      <h1 class="page-title">ALL REPORTS</h1>
+      <p class="page-subtitle">Pothole incidents — manage and resolve</p>
+    </div>
+    <div class="top-bar-right">
+      <div class="stat-chip total">
+        <span id="totalCount">0</span> Total
+      </div>
+      <div class="stat-chip pending">
+        <span id="pendingCount">0</span> Pending
+      </div>
+      <div class="stat-chip resolved">
+        <span id="resolvedCount">0</span> Resolved
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-left">
+      <span class="filter-label">STATUS</span>
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-value="All" onclick="setFilter(this)">All</button>
+        <button class="filter-tab" data-value="Pending" onclick="setFilter(this)">Pending</button>
+        <button class="filter-tab" data-value="Resolved" onclick="setFilter(this)">Resolved</button>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search location or description…" oninput="filterReports()">
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
     <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Image</th>
-                <th>Location</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="reportTable">
-        </tbody>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Image</th>
+          <th>Location</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="reportTable"></tbody>
     </table>
-</div>
 
+    <div class="table-empty" id="emptyState">
+      <div class="empty-icon">📋</div>
+      <p>No reports found matching the current filter.</p>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Expose filter state for adminreport.js
+  window._activeFilter = 'All';
+
+  function setFilter(btn) {
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window._activeFilter = btn.dataset.value;
+    filterReports();
+  }
+</script>
 <script src="./script/adminreport.js"></script>
 </body>
 </html>

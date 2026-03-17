@@ -1,61 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Road Health Monitoring - Admin</title>
-    <link rel="stylesheet" href="./styles/adminStyle.css">
-
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Road Monitor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/adminStyle.css">
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>Road Monitor</h2>
-        <ul>
-            <li><a href="./admin.html">Dashboard</a></li>
-            <li><a href="./report.html">Reports</a></li>
-            <li><a href="">Logout</a></li>
-        </ul>
+<div class="bg-grid"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🛣️</div>
+    <div class="brand-text">
+      <span class="brand-name">ROAD<span class="accent">MONITOR</span></span>
+      <span class="brand-role">ADMIN PANEL</span>
     </div>
-    <div class="main-content">
-        <header>
-            <h1>Admin Dashboard</h1>
-        </header>
+  </div>
 
-        <div class="cards">
-            <div class="card total">
-                <h3>Total Reports</h3>
-                <p id="totalCount">0</p>
-            </div>
+  <nav class="sidebar-nav">
+    <span class="nav-section-label">NAVIGATION</span>
+    <ul>
+      <li class="active">
+        <a href="./admin.html">
+          <span class="nav-icon">⬛</span> Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="./report.html">
+          <span class="nav-icon">📋</span> Reports
+        </a>
+      </li>
+    </ul>
 
-            <div class="card pending">
-                <h3>Pending</h3>
-                <p id="pendingCount">0</p>
-            </div>
+    <span class="nav-section-label" style="margin-top:24px;">SYSTEM</span>
+    <ul>
+      <li>
+        <a href="../login.html" class="nav-logout">
+          <span class="nav-icon">⏻</span> Logout
+        </a>
+      </li>
+    </ul>
+  </nav>
 
-            <div class="card resolved">
-                <h3>Resolved</h3>
-                <p id="resolvedCount">0</p>
-            </div>
-        </div>
+  <div class="sidebar-footer">
+    <div class="sidebar-status">
+      <span class="status-dot"></span>
+      <span>SYSTEM ONLINE</span>
+    </div>
+  </div>
+</aside>
 
-        <div class="table-section">
-            <h2>Recent Reports</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Image</th>
-                        <th>Location</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="reportTable">
-                </tbody>
-            </table>
-        </div>
+<!-- Main Content -->
+<div class="main-content">
+
+  <!-- Header -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="page-title">ADMIN DASHBOARD</h1>
+      <p class="page-sub">Overview of all road incident reports</p>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-time" id="liveClock"></div>
+      <div class="admin-chip">
+        <div class="admin-avatar">A</div>
+        <span>Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stat Cards -->
+  <div class="cards">
+    <div class="card card-total">
+      <div class="card-label">TOTAL REPORTS</div>
+      <div class="card-value" id="totalCount">0</div>
+      <div class="card-bar bar-total"></div>
+    </div>
+    <div class="card card-pending">
+      <div class="card-label">PENDING</div>
+      <div class="card-value" id="pendingCount">0</div>
+      <div class="card-bar bar-pending"></div>
+    </div>
+    <div class="card card-resolved">
+      <div class="card-label">RESOLVED</div>
+      <div class="card-value" id="resolvedCount">0</div>
+      <div class="card-bar bar-resolved"></div>
+    </div>
+  </div>
+
+  <!-- Reports Table -->
+  <div class="table-section">
+    <div class="table-header">
+      <div class="table-title-wrap">
+        <h2 class="table-title">RECENT REPORTS</h2>
+        <span class="table-count" id="tableCount">0 entries</span>
+      </div>
+      <div class="table-actions">
+        <input class="search-input" type="text" id="searchInput" placeholder="🔍  Search reports…">
+      </div>
     </div>
 
-<script src="./script/adminScript.js"></script>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Image</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="reportTable"></tbody>
+      </table>
+      <div class="table-empty" id="emptyState">
+        <div class="empty-icon">🗂️</div>
+        <p>No reports available</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="script/adminScript.js"></script>
+<script>
+  // Live clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('liveClock').textContent =
+      now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
 </body>
 </html>

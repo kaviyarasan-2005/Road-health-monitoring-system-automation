@@ -21,6 +21,9 @@ modal.style.display = "none";
 }
 };
 
+
+
+
 // Submit report
 form.addEventListener("submit", async (e)=>{
 
@@ -89,3 +92,34 @@ alert("Unable to fetch location");
 );
 
 });
+const reportTable = document.getElementById("reportTable");
+
+// Load reports
+async function loadReports(){
+
+const res = await fetch("http://localhost:3000/api/public/reports");
+
+const reports = await res.json();   
+
+reportTable.innerHTML = "";
+
+reports.forEach(report => {
+
+const row = `
+<tr>
+<td>${report.id}</td>
+<td><img src="http://localhost:3000/${report.image_url}" width="80"/></td>
+<td>${report.location}</td>
+<td>${report.description}</td>
+<td>${report.status}</td>
+</tr>
+`;
+
+reportTable.innerHTML += row;
+
+});
+
+}
+
+// load reports when page opens
+window.onload = loadReports;
