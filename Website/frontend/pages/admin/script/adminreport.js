@@ -1,5 +1,5 @@
 const table = document.getElementById("reportTable");
-
+loadReports();
 let reports = [];
 
 // Fetch reports from database
