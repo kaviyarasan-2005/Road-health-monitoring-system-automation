@@ -1,34 +1,29 @@
-const form = document.getElementById("signupForm");
-const message = document.getElementById("message");
+const form = document.getElementById('signup-form');
 
-form.addEventListener("submit", async (e)=>{
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
 
-e.preventDefault();
+  try {
+    const response = await fetch('http://localhost:3000/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
 
-const name = document.getElementById("name").value;
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
-
-try{
-
-const res = await fetch("http://localhost:3000/api/auth/signup",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({name,email,password})
-});
-
-const data = await res.json();
-
-message.style.color="green";
-message.innerText=data.message;
-
-}catch(err){
-
-message.style.color="red";
-message.innerText="Signup failed";
-
-}
-
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert('Signup successful! Redirecting to login...');
+      window.location.href = 'login.html';
+    } else {
+      alert(`Error: ${data.error}`);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Network error');
+  }
 });

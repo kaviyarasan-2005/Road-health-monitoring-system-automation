@@ -1,250 +1,35 @@
 const express = require("express");
 const cors = require("cors");
-const multer = require("multer");
-const axios = require("axios");
 const db = require("./config/db");
+require('dotenv').config();
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const reportRoutes = require("./routes/reportRoutes");
-const FormData = require("form-data");
-const fs = require("fs");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images
 app.use("/uploads", express.static("uploads"));
 
-// File upload setup
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-});
-
-const upload = multer({ storage });
-
-/* =============================
-   AUTH ROUTES
-============================= */
+// Routes
 app.use("/api/auth", authRoutes);
+app.use("/api", reportRoutes);
+app.use("/api/admin", adminRoutes);
 
-/* =============================
-   REPORT ROUTES
-============================= */
-app.post("/api/public/report", upload.single("image"), async (req, res) => {
-  try {
-
-    const imagePath = req.file.path;
-    const description = req.body.description;
-    const location = req.body.location;
-
-    // Send image to AI model
-    const formData = new FormData();
-    formData.append("image", fs.createReadStream(imagePath));
-
-    const aiResponse = await axios.post(
-      "http://127.0.0.1:5000/api/public/detect",
-      formData,
-      {
-        headers: formData.getHeaders()
-      }
-    );
-    /* =============================
-   GET ALL REPORTS
-============================= */
-app.get("/api/admin/reports", (req, res) => {
-
-  db.query("SELECT * FROM reports ORDER BY id DESC", (err, results) => {
-
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Database error" });
-    }
-
-    res.json(results);
-
-  });
-
-});
-app.get("/api/public/reports", (req, res) => {
-
-db.query("SELECT * FROM reports ORDER BY id DESC", (err, results) => {
-
-if(err){
-return res.status(500).json({error:"Database error"});
-}
-
-res.json(results);
-
-});
-
-});
-app.put("/api/admin/resolve/:id",(req,res)=>{
-
-const id = req.params.id;
-
-db.query(
-"UPDATE reports SET status='Resolved' WHERE id=?",
-[id],
-(err,result)=>{
-
-if(err) return res.status(500).json(err);
-
-res.json({message:"Report resolved"});
-
-});
-
-});
-app.delete("/api/admin/delete/:id",(req,res)=>{
-
-const id = req.params.id;
-
-db.query(
-"DELETE FROM reports WHERE id=?",
-[id],
-(err,result)=>{
-
-if(err) return res.status(500).json(err);
-
-res.json({message:"Report deleted"});
-
-});
-
-});
-
-    const damage = aiResponse.data.damage_percentage;
-
-    // Store report in database
-    db.query(
-      "INSERT INTO reports (image_url, description, location, damage_percentage, status) VALUES (?, ?, ?, ?, ?)",
-      [imagePath, description, location, damage, "Pending"],
-      (err, result) => {
-
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: "Database error" });
-        }
-
-        res.json({
-          message: "Report stored successfully",
-          damage_percentage: damage
-        });
-
-      }
-    );
-
-  } catch (error) {
-
-    console.error(error);
-    res.status(500).json({ error: "Detection failed" });
-
-  }
-});
-/* =============================
-   TEST ROUTE
-============================= */
+// Test route
 app.get("/", (req, res) => {
   res.send("Backend Server Running 🚀");
 });
 
-/* =============================
-   START SERVER
-============================= */
-const PORT = 3000;
-
+// Start server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} 🚀`);
-});
-app.get("/api/admin/clusters", (req, res) => {
-
-  db.query("SELECT * FROM reports", (err, reports) => {
-
-    if (err) {
-      return res.status(500).json({ error: "Database error" });
-    }
-
-    const clusters = [];
-
-    // 🔹 Haversine Distance Function (meters)
-    function getDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371000; // Earth radius in meters
-      const toRad = (x) => x * Math.PI / 180;
-
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-      return R * c;
-    }
-
-    // 🔹 Clustering Logic
-    reports.forEach(report => {
-
-      const [lat, lng] = report.location.split(",").map(Number);
-
-      let added = false;
-
-      for (let cluster of clusters) {
-
-        const dist = getDistance(lat, lng, cluster.lat, cluster.lng);
-
-        if (dist < 10) { // 🔥 10 meters threshold
-
-          cluster.count++;
-          cluster.reports.push(report);
-
-          added = true;
-          break;
-        }
-      }
-
-      if (!added) {
-        clusters.push({
-          lat,
-          lng,
-          count: 1,
-          reports: [report]
-        });
-      }
-
-    });
-
-    // 🔹 Add Severity
-    const finalClusters = clusters.map(cluster => {
-
-      let severity = "Low";
-
-      if (cluster.count > 5) severity = "High";
-      else if (cluster.count >= 3) severity = "Medium";
-
-      return {
-        lat: cluster.lat,
-        lng: cluster.lng,
-        count: cluster.count,
-        severity,
-        reports: cluster.reports
-      };
-
-    });
-
-    res.json(finalClusters);
-
-  });
-
 });
