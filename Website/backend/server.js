@@ -163,3 +163,88 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} 🚀`);
 });
+app.get("/api/admin/clusters", (req, res) => {
+
+  db.query("SELECT * FROM reports", (err, reports) => {
+
+    if (err) {
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    const clusters = [];
+
+    // 🔹 Haversine Distance Function (meters)
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371000; // Earth radius in meters
+      const toRad = (x) => x * Math.PI / 180;
+
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    }
+
+    // 🔹 Clustering Logic
+    reports.forEach(report => {
+
+      const [lat, lng] = report.location.split(",").map(Number);
+
+      let added = false;
+
+      for (let cluster of clusters) {
+
+        const dist = getDistance(lat, lng, cluster.lat, cluster.lng);
+
+        if (dist < 10) { // 🔥 10 meters threshold
+
+          cluster.count++;
+          cluster.reports.push(report);
+
+          added = true;
+          break;
+        }
+      }
+
+      if (!added) {
+        clusters.push({
+          lat,
+          lng,
+          count: 1,
+          reports: [report]
+        });
+      }
+
+    });
+
+    // 🔹 Add Severity
+    const finalClusters = clusters.map(cluster => {
+
+      let severity = "Low";
+
+      if (cluster.count > 5) severity = "High";
+      else if (cluster.count >= 3) severity = "Medium";
+
+      return {
+        lat: cluster.lat,
+        lng: cluster.lng,
+        count: cluster.count,
+        severity,
+        reports: cluster.reports
+      };
+
+    });
+
+    res.json(finalClusters);
+
+  });
+
+});
