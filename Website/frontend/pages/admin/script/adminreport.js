@@ -74,6 +74,34 @@ method:"DELETE"
 loadReports();
 
 }
+loadClusters();
+async function loadClusters(){
+
+const res = await fetch("http://localhost:3000/api/admin/clusters");
+const clusters = await res.json();
+
+const table = document.getElementById("clusterTable");
+
+table.innerHTML = "";
+
+clusters.forEach(c => {
+
+table.innerHTML += `
+<tr>
+<td>${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}</td>
+<td>${c.count}</td>
+<td style="color:${
+  c.severity === "High" ? "red" :
+  c.severity === "Medium" ? "orange" : "green"
+}">
+${c.severity}
+</td>
+</tr>
+`;
+
+});
+
+}
 
 // Load reports when page opens
 window.onload = loadReports;

@@ -137,5 +137,6 @@ reportTable.innerHTML += row;
 
 }
 
+
 // load reports when page opens
 window.onload = loadReports;
