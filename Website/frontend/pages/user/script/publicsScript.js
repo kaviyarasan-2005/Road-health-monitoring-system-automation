@@ -98,10 +98,26 @@ const reportTable = document.getElementById("reportTable");
 async function loadReports(){
 
 const res = await fetch("http://localhost:3000/api/public/reports");
-
-const reports = await res.json();   
+const reports = await res.json();
 
 reportTable.innerHTML = "";
+
+// ✅ COUNT LOGIC
+let total = reports.length;
+let pending = reports.filter(r => r.status === "Pending").length;
+let resolved = reports.filter(r => r.status === "Resolved").length;
+
+// ✅ UPDATE UI
+document.getElementById("totalCount").innerText = total;
+document.getElementById("pendingCount").innerText = pending;
+document.getElementById("resolvedCount").innerText = resolved;
+
+// ✅ TABLE DATA
+if(reports.length === 0){
+document.getElementById("emptyState").style.display = "block";
+}else{
+document.getElementById("emptyState").style.display = "none";
+}
 
 reports.forEach(report => {
 

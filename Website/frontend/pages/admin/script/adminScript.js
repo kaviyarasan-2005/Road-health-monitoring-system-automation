@@ -1,7 +1,7 @@
 const table = document.getElementById("reportTable");
 
 let allReports = [];
-
+loadReports();
 async function loadReports() {
 
 const res = await fetch("http://localhost:3000/api/admin/reports");
