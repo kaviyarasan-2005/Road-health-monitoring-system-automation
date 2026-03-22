@@ -2,16 +2,20 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/uploadMiddleware');
 const {
-  submitReport,
+  submitVehicleReport,
+  submitUserReport,
   getAllReports,
   getPublicReports,
   resolveReport,
-  getClusters
+  getClusters,
 } = require('../controllers/reportController');
 
 // Public routes
-router.post('/public/report', upload.single('image'), submitReport);
+router.post('/public/report', upload.single('image'), submitUserReport);
 router.get('/public/reports', getPublicReports);
+
+//vehicle routes
+router.post('/vehicle/report', upload.single('image'), submitVehicleReport);
 
 // Cluster route
 router.get('/clusters', getClusters);
