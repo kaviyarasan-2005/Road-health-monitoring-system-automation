@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cluster Map — Road Monitor Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <style>
+    :root {
+      --blue-bright: #00b4ff;
+      --blue-mid:    #0090e0;
+      --green:       #00f593;
+      --amber:       #ffaa00;
+      --red:         #ff5c5c;
+      --bg:          #090d12;
+      --sidebar-bg:  #0b1118;
+      --surface:     #0f1620;
+      --surface-2:   #172030;
+      --border:      rgba(0,180,255,0.10);
+      --border-md:   rgba(0,180,255,0.18);
+      --text:        #e0eefd;
+      --text-2:      #8aa8c0;
+      --muted:       #4e718c;
+      --sidebar-w:   230px;
+      --radius:      12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: var(--sidebar-w); height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 28px 20px; z-index: 200;
+    }
+    .sidebar-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--blue-mid), var(--blue-bright));
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; box-shadow: 0 0 14px rgba(0,180,255,0.3); flex-shrink: 0;
+    }
+    .brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--text); }
+    .brand-name .accent { color: var(--blue-bright); }
+    .sidebar-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 2px;
+      color: var(--muted); margin-bottom: 8px; margin-top: 4px; padding-left: 10px;
+    }
+    .sidebar-nav { list-style: none; margin-bottom: 24px; }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px; text-decoration: none;
+      font-size: 14px; font-weight: 400; color: var(--text-2);
+      transition: background 0.18s, color 0.18s;
+    }
+    .nav-link:hover { background: var(--surface-2); color: var(--text); }
+    .nav-link.active { background: rgba(0,180,255,0.1); color: var(--blue-bright); border: 1px solid rgba(0,180,255,0.18); }
+    .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+    .nav-logout { color: var(--muted); }
+    .nav-logout:hover { color: var(--red); background: rgba(255,92,92,0.07); }
+    .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 500; letter-spacing: 1.5px;
+      color: var(--green); background: rgba(0,245,147,0.07);
+      border: 1px solid rgba(0,245,147,0.15); border-radius: 20px; padding: 5px 10px;
+    }
+    .status-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; box-shadow: 0 0 6px var(--green); }
+
+    /* ── Main ── */
+    .main-content {
+      margin-left: var(--sidebar-w); flex: 1;
+      display: flex; flex-direction: column;
+      height: 100vh; overflow: hidden;
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      padding: 20px 28px 16px;
+      display: flex; align-items: flex-end;
+      justify-content: space-between; flex-wrap: wrap; gap: 16px;
+      flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg);
+    }
+    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 4px; line-height: 1; }
+    .page-subtitle { font-size: 13px; color: var(--muted); font-weight: 300; margin-top: 4px; }
+    .stat-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .stat-chip {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 13px; border-radius: 20px;
+      font-size: 12px; font-weight: 500; border: 1px solid transparent;
+    }
+    .stat-chip span { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1px; line-height: 1; }
+    .stat-chip.total    { background: rgba(0,180,255,0.08); border-color: rgba(0,180,255,0.18); color: var(--blue-bright); }
+    .stat-chip.active   { background: rgba(255,170,0,0.08); border-color: rgba(255,170,0,0.18); color: var(--amber); }
+    .stat-chip.resolved { background: rgba(0,245,147,0.07); border-color: rgba(0,245,147,0.15); color: var(--green); }
+
+    /* ── Filters ── */
+    .filter-panel {
+      padding: 12px 28px;
+      display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+      flex-shrink: 0; background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .filter-group { display: flex; align-items: center; gap: 10px; }
+    .filter-label { font-size: 10px; font-weight: 600; letter-spacing: 2px; color: var(--muted); white-space: nowrap; }
+    .filter-tabs {
+      display: flex; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px;
+    }
+    .filter-tab {
+      padding: 5px 13px; border: none; border-radius: 6px;
+      background: transparent; color: var(--text-2);
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: background 0.18s, color 0.18s; white-space: nowrap;
+    }
+    .filter-tab:hover { color: var(--text); background: var(--surface-2); }
+    .filter-tab.active { background: rgba(0,180,255,0.15); color: var(--blue-bright); border: 1px solid rgba(0,180,255,0.25); }
+    .filter-tab[data-sev="Good"].active     { background: rgba(0,245,147,0.12);  color: #00f593; border-color: rgba(0,245,147,0.3); }
+    .filter-tab[data-sev="Fair"].active     { background: rgba(160,230,80,0.12); color: #a0e650; border-color: rgba(160,230,80,0.3); }
+    .filter-tab[data-sev="Poor"].active     { background: rgba(255,200,0,0.12);  color: #ffc800; border-color: rgba(255,200,0,0.3); }
+    .filter-tab[data-sev="Severe"].active   { background: rgba(255,130,0,0.12);  color: #ff8200; border-color: rgba(255,130,0,0.3); }
+    .filter-tab[data-sev="Critical"].active { background: rgba(255,60,60,0.12);  color: #ff3c3c; border-color: rgba(255,60,60,0.3); }
+
+    /* ── Map ── */
+    .map-wrapper { position: relative; flex: 1; min-height: 0; }
+    #map { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .leaflet-tile { filter: brightness(0.45) saturate(0.5) hue-rotate(180deg); }
+
+    /* ── Popup ── */
+    .leaflet-popup-content-wrapper {
+      background: #0f1620 !important; color: #e0eefd !important;
+      border: 1px solid rgba(0,180,255,0.2) !important;
+      border-radius: 10px !important; box-shadow: 0 4px 24px rgba(0,0,0,0.6) !important;
+    }
+    .leaflet-popup-tip { background: #0f1620 !important; }
+    .leaflet-popup-close-button { color: #4e718c !important; font-size: 18px !important; }
+    .popup-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0,180,255,0.12);
+    }
+    .popup-tier {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+      padding: 3px 9px; border-radius: 12px; text-transform: uppercase;
+    }
+    .popup-row { display: flex; justify-content: space-between; font-size: 12px; margin: 4px 0; color: #8aa8c0; }
+    .popup-row span:last-child { color: #e0eefd; font-weight: 500; }
+
+    /* ── Legend ── */
+    .map-legend {
+      position: absolute; bottom: 28px; right: 16px; z-index: 1000;
+      background: rgba(11,17,24,0.92);
+      border: 1px solid rgba(0,180,255,0.15); border-radius: 10px;
+      padding: 12px 16px; backdrop-filter: blur(8px); pointer-events: none;
+    }
+    .legend-title { font-size: 9px; font-weight: 600; letter-spacing: 2px; color: var(--muted); margin-bottom: 10px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; margin: 5px 0; font-size: 11px; color: var(--text-2); }
+    .legend-line { width: 28px; height: 5px; border-radius: 3px; flex-shrink: 0; }
+
+    /* ── Loading overlay ── */
+    #map-loading {
+      position: absolute; inset: 0;
+      background: rgba(9,13,18,0.85);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500; gap: 14px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(0,180,255,0.15);
+      border-top-color: var(--blue-bright);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 12px; letter-spacing: 2px; color: var(--muted); }
+    .loading-sub  { font-size: 11px; color: var(--muted); opacity: 0.6; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🛣️</div>
+    <span class="brand-name">ROAD<span class="accent">MONITOR</span></span>
+  </div>
+  <div class="sidebar-section-label">NAVIGATION</div>
+  <ul class="sidebar-nav">
+    <li><a href="../admin/admin.html"  class="nav-link"><span class="nav-icon">⬛</span> Dashboard</a></li>
+    <li><a href="../admin/report.html" class="nav-link"><span class="nav-icon">📋</span> Reports</a></li>
+    <li><a href="../admin/map.html"    class="nav-link active"><span class="nav-icon">🗺️</span> Cluster Map</a></li>
+  </ul>
+  <div class="sidebar-section-label">SYSTEM</div>
+  <ul class="sidebar-nav">
+    <li><a href="../login.html" class="nav-link nav-logout"><span class="nav-icon">⏻</span> Logout</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <div class="status-pill"><span class="status-dot"></span> NETWORK LIVE</div>
+  </div>
+</aside>
+
+<main class="main-content">
+  <div class="top-bar">
+    <div>
+      <h1 class="page-title">CLUSTER MAP</h1>
+      <p class="page-subtitle">Road damage density — live cluster view</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="stat-chips">
+        <div class="stat-chip total">   <span id="statTotal">0</span>    Clusters</div>
+        <div class="stat-chip active">  <span id="statActive">0</span>   Active</div>
+        <div class="stat-chip resolved"><span id="statResolved">0</span> Resolved</div>
+      </div>
+      <button onclick="loadClusters()" id="reloadBtn" style="
+        display:flex;align-items:center;gap:6px;
+        padding:7px 14px;border-radius:8px;
+        background:rgba(0,180,255,0.08);
+        border:1px solid rgba(0,180,255,0.2);
+        color:var(--blue-bright);
+        font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+        cursor:pointer;transition:background 0.18s;white-space:nowrap;
+      " onmouseover="this.style.background='rgba(0,180,255,0.16)'"
+         onmouseout="this.style.background='rgba(0,180,255,0.08)'">
+        ↻ Reload
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-panel">
+    <div class="filter-group">
+      <span class="filter-label">SEVERITY</span>
+      <div class="filter-tabs" id="sevTabs">
+        <button class="filter-tab active" data-sev="All"      onclick="setSev(this)">All</button>
+        <button class="filter-tab" data-sev="Good"     onclick="setSev(this)">Good</button>
+        <button class="filter-tab" data-sev="Fair"     onclick="setSev(this)">Fair</button>
+        <button class="filter-tab" data-sev="Poor"     onclick="setSev(this)">Poor</button>
+        <button class="filter-tab" data-sev="Severe"   onclick="setSev(this)">Severe</button>
+        <button class="filter-tab" data-sev="Critical" onclick="setSev(this)">Critical</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">TRAFFIC</span>
+      <div class="filter-tabs" id="trafficTabs">
+        <button class="filter-tab active" data-traffic="All"    onclick="setTraffic(this)">All</button>
+        <button class="filter-tab" data-traffic="Low"    onclick="setTraffic(this)">Low</button>
+        <button class="filter-tab" data-traffic="Medium" onclick="setTraffic(this)">Medium</button>
+        <button class="filter-tab" data-traffic="High"   onclick="setTraffic(this)">High</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-wrapper">
+    <div id="map"></div>
+
+    <div id="map-loading">
+      <div class="spinner"></div>
+      <span class="loading-text">FETCHING CLUSTERS</span>
+      <span class="loading-sub" id="loadingSubtext">Connecting to server…</span>
+    </div>
+
+    <div class="map-legend">
+      <div class="legend-title">DAMAGE SEVERITY</div>
+      <div class="legend-row"><div class="legend-line" style="background:#00f593"></div> Good (0–20)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#a0e650"></div> Fair (21–40)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#ffc800"></div> Poor (41–60)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#ff8200"></div> Severe (61–80)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#ff3c3c"></div> Critical (81–100)</div>
+      <div class="legend-title" style="margin-top:12px">TRAFFIC (REPORTS)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#8aa8c0;height:3px"></div> Low (1–2)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#8aa8c0;height:5px"></div> Medium (3–5)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#8aa8c0;height:8px"></div> High (6+)</div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  const API_URL    = 'http://localhost:3000/api/clusters';
+  const OSRM_URL   = 'https://router.project-osrm.org';
+  const MAP_CENTER = [19.076, 72.877];
+  const MAP_ZOOM   = 13;
+
+  // Traffic thresholds
+  const T_LOW = 2, T_MED = 5;
+
+  const SEV_COLOR = {
+    Good:     '#00f593',
+    Fair:     '#a0e650',
+    Poor:     '#ffc800',
+    Severe:   '#ff8200',
+    Critical: '#ff3c3c',
+  };
+
+  const TIER_BADGE = {
+    Good:     'background:rgba(0,245,147,0.12);color:#00f593;border:1px solid rgba(0,245,147,0.3)',
+    Fair:     'background:rgba(160,230,80,0.12);color:#a0e650;border:1px solid rgba(160,230,80,0.3)',
+    Poor:     'background:rgba(255,200,0,0.12);color:#ffc800;border:1px solid rgba(255,200,0,0.3)',
+    Severe:   'background:rgba(255,130,0,0.12);color:#ff8200;border:1px solid rgba(255,130,0,0.3)',
+    Critical: 'background:rgba(255,60,60,0.12);color:#ff3c3c;border:1px solid rgba(255,60,60,0.3)',
+  };
+
+  function scoreToTier(s) {
+    if (s <= 20) return 'Good';
+    if (s <= 40) return 'Fair';
+    if (s <= 60) return 'Poor';
+    if (s <= 80) return 'Severe';
+    return 'Critical';
+  }
+
+  function trafficBucket(n) {
+    if (n <= T_LOW) return 'Low';
+    if (n <= T_MED) return 'Medium';
+    return 'High';
+  }
+
+  // Line width scales with report count
+  function lineWidth(n) {
+    if (n <= T_LOW) return 5;
+    if (n <= T_MED) return 8;
+    return 12;
+  }
+
+  // ── Map init ──
+  const map = L.map('map', { zoomControl: false }).setView(MAP_CENTER, MAP_ZOOM);
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 19,
+  }).addTo(map);
+
+  const layerGroup = L.layerGroup().addTo(map);
+
+  // ── State ──
+  let allClusters   = [];   // raw from API
+  let clusterLayers = [];   // { cluster, tier, traffic, layers: [L.Layer] }
+  let activeSev     = 'All';
+  let activeTraffic = 'All';
+
+  // ── OSRM: snap cluster point to road and return a road segment geometry ──
+  // Strategy: offset two points ~60m east/west, route between them.
+  // OSRM snaps both to the nearest road — gives a real road polyline.
+  async function getRoadSegment(lat, lng) {
+    const offset = 0.0006; // ~66m longitude offset
+    const p1 = `${(lng - offset).toFixed(7)},${lat.toFixed(7)}`;
+    const p2 = `${(lng + offset).toFixed(7)},${lat.toFixed(7)}`;
+
+    try {
+      const res = await fetch(
+        `${OSRM_URL}/route/v1/driving/${p1};${p2}?overview=full&geometries=geojson`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+      const data = await res.json();
+      if (data.code !== 'Ok' || !data.routes?.[0]) return null;
+      // GeoJSON coords are [lng, lat] — flip to [lat, lng] for Leaflet
+      return data.routes[0].geometry.coordinates.map(([lo, la]) => [la, lo]);
+    } catch {
+      return null;
+    }
+  }
+
+  // Small delay to avoid hammering OSRM
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  // ── Build all layers for all clusters ──
+  async function buildClusterLayers(clusters) {
+    const sub = document.getElementById('loadingSubtext');
+    const result = [];
+
+    for (let i = 0; i < clusters.length; i++) {
+      const c     = clusters[i];
+      const tier  = c.damage_tier || scoreToTier(c.damage_score || 0);
+      const color = SEV_COLOR[tier];
+      const count = c.report_count || 1;
+      const w     = lineWidth(count);
+      const traffic = trafficBucket(count);
+
+      sub.textContent = `Snapping to roads… (${i + 1}/${clusters.length})`;
+
+      const popup = `
+        <div style="min-width:190px;font-family:'DM Sans',sans-serif">
+          <div class="popup-header">
+            <span class="popup-tier" style="${TIER_BADGE[tier]}">${tier}</span>
+            <span style="font-size:11px;color:#4e718c">Cluster #${c.id}</span>
+          </div>
+          <div class="popup-row"><span>Damage score</span><span>${(+c.damage_score||0).toFixed(1)} / 100</span></div>
+          <div class="popup-row"><span>Reports</span><span>${count} (${traffic} traffic)</span></div>
+          <div class="popup-row"><span>Status</span><span>${c.status}</span></div>
+          <div class="popup-row"><span>Coords</span>
+            <span>${(+c.latitude).toFixed(5)}, ${(+c.longitude).toFixed(5)}</span>
+          </div>
+        </div>`;
+
+      const layers = [];
+      const coords = await getRoadSegment(+c.latitude, +c.longitude);
+
+      if (coords && coords.length >= 2) {
+        // Shadow / outline for contrast
+        layers.push(L.polyline(coords, {
+          color: '#000', weight: w + 4, opacity: 0.35,
+          lineCap: 'round', lineJoin: 'round', interactive: false,
+        }));
+        // Main colored road line
+        const line = L.polyline(coords, {
+          color, weight: w, opacity: 0.9,
+          lineCap: 'round', lineJoin: 'round',
+        }).bindPopup(popup);
+        layers.push(line);
+        // Small dot at cluster center
+        layers.push(L.circleMarker([+c.latitude, +c.longitude], {
+          radius: 5, color: '#fff', weight: 2,
+          fillColor: color, fillOpacity: 1, interactive: false,
+        }));
+      } else {
+        // Fallback: circle if OSRM fails
+        layers.push(L.circleMarker([+c.latitude, +c.longitude], {
+          radius: 10, color, weight: 2,
+          fillColor: color, fillOpacity: 0.7,
+        }).bindPopup(popup));
+      }
+
+      result.push({ cluster: c, tier, traffic, layers });
+
+      if (i < clusters.length - 1) await delay(120); // OSRM rate limit courtesy
+    }
+
+    return result;
+  }
+
+  // ── Render: show/hide layers based on active filters ──
+  function renderFiltered() {
+    layerGroup.clearLayers();
+
+    clusterLayers.forEach(({ tier, traffic, layers }) => {
+      const sevOk     = activeSev     === 'All' || tier    === activeSev;
+      const trafficOk = activeTraffic === 'All' || traffic === activeTraffic;
+      if (sevOk && trafficOk) layers.forEach(l => layerGroup.addLayer(l));
+    });
+  }
+
+  // ── Load clusters from API, snap to roads, render ──
+  async function loadClusters() {
+    document.getElementById('map-loading').style.display = 'flex';
+    document.getElementById('loadingSubtext').textContent = 'Connecting to server…';
+
+    try {
+      const res = await fetch(API_URL);
+      allClusters = await res.json();
+    } catch (err) {
+      console.error('Failed to fetch clusters:', err);
+      document.getElementById('loadingSubtext').textContent = '⚠ Could not reach API';
+      return;
+    }
+
+    // Stats
+    document.getElementById('statTotal').textContent    = allClusters.length;
+    document.getElementById('statActive').textContent   = allClusters.filter(c => c.status === 'Active').length;
+    document.getElementById('statResolved').textContent = allClusters.filter(c => c.status === 'Resolved').length;
+
+    // Fit map
+    const valid = allClusters.filter(c => c.latitude && c.longitude);
+    if (valid.length > 0) {
+      map.fitBounds(L.latLngBounds(valid.map(c => [+c.latitude, +c.longitude])).pad(0.3));
+    }
+
+    // Build road-snapped layers
+    clusterLayers = await buildClusterLayers(valid);
+    renderFiltered();
+
+    document.getElementById('map-loading').style.display = 'none';
+  }
+
+  // ── Filters ──
+  function setSev(btn) {
+    document.querySelectorAll('#sevTabs .filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeSev = btn.dataset.sev;
+    renderFiltered();
+  }
+
+  function setTraffic(btn) {
+    document.querySelectorAll('#trafficTabs .filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTraffic = btn.dataset.traffic;
+    renderFiltered();
+  }
+
+  loadClusters();
+
+</script>
+</body>
+</html>

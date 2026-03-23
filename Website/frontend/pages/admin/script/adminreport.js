@@ -22,7 +22,7 @@ data.forEach(report => {
 table.innerHTML += `
 <tr>
 <td>${report.id}</td>
-<td><img src="http://localhost:3000/${report.image_url}" width="80"/></td>
+<td><img src="http://localhost:3000/major_project/Road-health-monitoring-system-automation/Website/${report.image_url}" width="80"/></td>
 <td>${report.location}</td>
 <td>${report.description}</td>
 <td>${report.status}</td>

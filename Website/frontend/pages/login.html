@@ -461,25 +461,7 @@ document.querySelector('.btn-login').addEventListener('click', function(e) {
   btn.appendChild(ripple);
   setTimeout(() => ripple.remove(), 600);
 });
-
-// Submit
-document.getElementById('loginForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const btn = document.querySelector('.btn-login');
-  const msg = document.getElementById('message');
-  btn.classList.add('loading');
-  btn.textContent = 'AUTHENTICATING...';
-  msg.className = '';
-  msg.textContent = '';
-
-  setTimeout(() => {
-    btn.classList.remove('loading');
-    btn.textContent = 'ACCESS DASHBOARD';
-    msg.className = 'success';
-    msg.textContent = '✓ Login successful! Redirecting…';
-  }, 1800);
-});
 </script>
-<script src="lognin.js"></script>
+<script src="login.js"></script>
 </body>
 </html>
