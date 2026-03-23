@@ -1,3 +1,5 @@
+// adminreport.js
+
 // ─── State ───────────────────────────────────────────────────────────────────
 let allReports  = [];
 let allClusters = [];
@@ -323,15 +325,7 @@ async function updateClusterStatus() {
   if (!activeCluster) return;
   const newStatus = document.getElementById('modalStatusSelect').value;
 
-  // If Resolved → delete from DB as per requirement
-  if (newStatus === 'Resolved') {
-    if (!confirm(`Marking as Resolved will permanently delete Cluster #${activeCluster.id} and all its reports from the database. Continue?`)) return;
-    await deleteCluster(true); // silent = true (no second confirm)
-    return;
-  }
-
   try {
-    // Use the cluster update endpoint — adjust path to match your backend
     const res = await fetch(`${BASE}/api/clusters/${activeCluster.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -342,6 +336,7 @@ async function updateClusterStatus() {
       // update local state
       const c = allClusters.find(c => c.id === activeCluster.id);
       if (c) c.status = newStatus;
+
       updateStatCards();
       renderClusters();
 
@@ -352,14 +347,14 @@ async function updateClusterStatus() {
 
       activeCluster.status = newStatus;
     } else {
-      alert('Failed to update status. Check your backend has PUT /api/admin/clusters/:id');
+      const err = await res.json();
+      alert('Failed to update status: ' + (err.error || 'Unknown error'));
     }
   } catch (e) {
     console.error(e);
     alert('Error updating cluster status.');
   }
 }
-
 // ─── Delete cluster ───────────────────────────────────────────────────────────
 async function deleteCluster(silent = false) {
   if (!activeCluster) return;
