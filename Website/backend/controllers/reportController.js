@@ -233,15 +233,14 @@
     );
   };
 
-  const resolveCluster = (req, res) => {
+const resolveCluster = (req, res) => {
   const { status } = req.body;
 
-  // Map frontend labels to valid DB enum values
-  const validStatuses = ['Pending', 'Under Process', 'Resolved'];
-  if (!status || !validStatuses.includes(status)) {
-    return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required' });
   }
 
+  // Step 1: Update cluster status
   db.query(
     'UPDATE clusters SET status = ?, modified_at = NOW() WHERE id = ?',
     [status, req.params.id],
@@ -253,7 +252,23 @@
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: 'Cluster not found' });
       }
-      res.json({ message: 'Cluster updated', clusterId: req.params.id });
+
+      // Step 2: If resolved, update all reports in this cluster too
+      if (status === 'Resolved') {
+        db.query(
+          'UPDATE reports SET status = ? WHERE cluster_id = ?',
+          ['Resolved', req.params.id],
+          (err2) => {
+            if (err2) {
+              console.error('Reports update error:', err2);
+              return res.status(500).json({ error: 'Cluster updated but failed to update reports', detail: err2.message });
+            }
+            res.json({ message: 'Cluster and all its reports marked as Resolved', clusterId: req.params.id });
+          }
+        );
+      } else {
+        res.json({ message: 'Cluster updated', clusterId: req.params.id });
+      }
     }
   );
 };
