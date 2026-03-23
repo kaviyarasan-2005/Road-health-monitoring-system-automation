@@ -5,6 +5,305 @@
   <title>Reports — Road Monitor Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/adminreport.css">
+  <style>
+    /* ── View toggle pill ── */
+    .view-toggle {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border-md);
+      border-radius: 9px;
+      padding: 4px;
+      gap: 2px;
+    }
+    .view-btn {
+      padding: 7px 20px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+    }
+    .view-btn.active {
+      background: rgba(0,180,255,0.14);
+      color: var(--blue-bright);
+      border-color: var(--border-md);
+    }
+    .view-btn:hover:not(.active) {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    /* ── Section wrapper (shown/hidden) ── */
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    /* ── Cluster status badges ── */
+    .cs-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .cs-Pending       { background:rgba(255,170,0,0.10); color:#ffaa00; border:1px solid rgba(255,170,0,0.22); }
+    .cs-Under\ Process{ background:rgba(0,180,255,0.10); color:#00b4ff; border:1px solid rgba(0,180,255,0.22); }
+    .cs-Under-Process { background:rgba(0,180,255,0.10); color:#00b4ff; border:1px solid rgba(0,180,255,0.22); }
+    .cs-Resolved      { background:rgba(0,245,147,0.09); color:#00f593; border:1px solid rgba(0,245,147,0.20); }
+
+    /* ── Damage tier ── */
+    .tier-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .tier-Good     { background:rgba(0,245,147,0.10); color:#00f593; border:1px solid rgba(0,245,147,0.20); }
+    .tier-Fair     { background:rgba(0,180,255,0.10); color:#00b4ff; border:1px solid rgba(0,180,255,0.20); }
+    .tier-Poor     { background:rgba(255,170,0,0.10); color:#ffaa00; border:1px solid rgba(255,170,0,0.20); }
+    .tier-Severe   { background:rgba(255,120,0,0.10); color:#ff7800; border:1px solid rgba(255,120,0,0.20); }
+    .tier-Critical { background:rgba(255,92,92,0.12); color:#ff5c5c; border:1px solid rgba(255,92,92,0.25); }
+
+    .type-chip {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .type-vehicle { background:rgba(0,180,255,0.10); color:var(--blue-bright); border:1px solid var(--border-md); }
+    .type-user    { background:rgba(0,245,147,0.08); color:var(--green); border:1px solid rgba(0,245,147,0.18); }
+
+    /* ── View button ── */
+    .view-report-btn {
+      padding: 5px 13px;
+      border: 1px solid var(--border-md);
+      background: var(--surface-2);
+      color: var(--blue-bright);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s;
+    }
+    .view-report-btn:hover { background: rgba(0,180,255,0.12); border-color: var(--blue-bright); }
+
+    /* ── Cluster score bar ── */
+    .score-bar-track {
+      width: 100px;
+      height: 5px;
+      background: var(--surface-3);
+      border-radius: 3px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+    .score-bar-fill { height: 100%; border-radius: 3px; }
+
+    /* ════════════════════════════
+       CLUSTER DETAIL MODAL
+    ════════════════════════════ */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(5,10,18,0.87);
+      backdrop-filter: blur(7px);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border-md);
+      border-radius: 16px;
+      width: 860px;
+      max-width: 96vw;
+      max-height: 92vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 28px 90px rgba(0,0,0,0.65);
+    }
+    .modal-box::-webkit-scrollbar { width: 4px; }
+    .modal-box::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 2px; }
+
+    .modal-close {
+      position: absolute; top: 14px; right: 16px;
+      background: var(--surface-3); border: 1px solid var(--border);
+      color: var(--text-2); width: 30px; height: 30px;
+      border-radius: 7px; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s; z-index: 2;
+    }
+    .modal-close:hover { background: rgba(255,92,92,0.15); color: var(--red); border-color: rgba(255,92,92,0.3); }
+
+    .modal-head {
+      padding: 26px 28px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-head-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .modal-cluster-id {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px; letter-spacing: 3px; color: var(--text);
+    }
+    .modal-cluster-id span { color: var(--blue-bright); }
+
+    .modal-meta-row {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+
+    /* Cluster info grid */
+    .cluster-info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .info-card-label {
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 2px; color: var(--muted);
+      margin-bottom: 6px; text-transform: uppercase;
+    }
+    .info-card-value {
+      font-size: 15px; font-weight: 500; color: var(--text);
+    }
+
+    /* Reports inside cluster */
+    .modal-section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px; letter-spacing: 3px;
+      color: var(--text-2); padding: 18px 28px 10px;
+    }
+
+    .cluster-reports-wrap {
+      padding: 0 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cluster-report-card {
+      display: flex;
+      gap: 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      align-items: center;
+    }
+    .cluster-report-card img {
+      width: 80px; height: 56px;
+      object-fit: cover;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .cluster-report-info { flex: 1; min-width: 0; }
+    .cluster-report-top {
+      display: flex; align-items: center;
+      gap: 8px; margin-bottom: 5px; flex-wrap: wrap;
+    }
+    .cluster-report-id {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 15px; letter-spacing: 1px;
+      color: var(--muted);
+    }
+    .cluster-report-desc {
+      font-size: 12px; color: var(--text-2);
+      font-weight: 300; line-height: 1.5;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cluster-report-meta {
+      display: flex; gap: 10px; margin-top: 4px;
+      font-size: 11px; color: var(--muted); flex-wrap: wrap;
+    }
+
+    /* Status dropdown in modal */
+    .status-select-wrap {
+      display: flex; gap: 10px; align-items: center;
+      padding: 18px 28px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+      border-radius: 0 0 16px 16px;
+      flex-wrap: wrap;
+    }
+    .status-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1.5px; color: var(--muted);
+      text-transform: uppercase;
+    }
+    .status-select {
+      padding: 8px 14px;
+      background: var(--surface-3);
+      border: 1px solid var(--border-md);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    .status-select:focus { border-color: var(--blue-bright); }
+
+    .btn-update-status {
+      padding: 8px 20px;
+      background: rgba(0,180,255,0.12);
+      border: 1px solid var(--border-md);
+      color: var(--blue-bright);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 600;
+      border-radius: 7px; cursor: pointer;
+      transition: background 0.18s;
+    }
+    .btn-update-status:hover { background: rgba(0,180,255,0.22); border-color: var(--blue-bright); }
+
+    .btn-delete-cluster {
+      padding: 8px 20px;
+      background: rgba(255,92,92,0.08);
+      border: 1px solid rgba(255,92,92,0.2);
+      color: var(--red);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 600;
+      border-radius: 7px; cursor: pointer;
+      transition: background 0.18s;
+      margin-left: auto;
+    }
+    .btn-delete-cluster:hover { background: rgba(255,92,92,0.16); border-color: var(--red); }
+
+    /* stat chip for Under Process */
+    .stat-chip.process {
+      background: rgba(0,180,255,0.08);
+      border-color: rgba(0,180,255,0.18);
+      color: var(--blue-bright);
+    }
+  </style>
 </head>
 <body>
 
@@ -17,32 +316,18 @@
 
   <div class="sidebar-section-label">NAVIGATION</div>
   <ul class="sidebar-nav">
-    <li>
-      <a href="../admin/admin.html" class="nav-link">
-        <span class="nav-icon">⬛</span> Dashboard
-      </a>
-    </li>
-    <li>
-      <a href="../admin/report.html" class="nav-link active">
-        <span class="nav-icon">📋</span> Reports
-      </a>
-    </li>
-     <li><a href="../admin/map.html"    class="nav-link active"><span class="nav-icon">🗺️</span> Cluster Map</a></li>
+    <li><a href="../admin/admin.html" class="nav-link"><span class="nav-icon">⬛</span> Dashboard</a></li>
+    <li><a href="../admin/report.html" class="nav-link active"><span class="nav-icon">📋</span> Reports</a></li>
+    <li><a href="../admin/map.html" class="nav-link"><span class="nav-icon">🗺️</span> Cluster Map</a></li>
   </ul>
 
   <div class="sidebar-section-label">SYSTEM</div>
   <ul class="sidebar-nav">
-    <li>
-      <a href="../login.html" class="nav-link nav-logout">
-        <span class="nav-icon">⏻</span> Logout
-      </a>
-    </li>
+    <li><a href="../login.html" class="nav-link nav-logout"><span class="nav-icon">⏻</span> Logout</a></li>
   </ul>
 
   <div class="sidebar-footer">
-    <div class="status-pill">
-      <span class="status-dot"></span> NETWORK LIVE
-    </div>
+    <div class="status-pill"><span class="status-dot"></span> NETWORK LIVE</div>
   </div>
 </aside>
 
@@ -52,85 +337,156 @@
   <div class="top-bar">
     <div>
       <h1 class="page-title">ALL REPORTS</h1>
-      <p class="page-subtitle">Pothole incidents — manage and resolve</p>
+      <p class="page-subtitle">Pothole incidents — manage clusters and individual reports</p>
     </div>
     <div class="top-bar-right">
-      <div class="stat-chip total">
-        <span id="totalCount">0</span> Total
-      </div>
-      <div class="stat-chip pending">
-        <span id="pendingCount">0</span> Pending
-      </div>
-      <div class="stat-chip resolved">
-        <span id="resolvedCount">0</span> Resolved
-      </div>
+      <div class="stat-chip total">   <span id="totalCount">0</span> Total</div>
+      <div class="stat-chip pending"> <span id="pendingCount">0</span> Pending</div>
+      <div class="stat-chip process"> <span id="processCount">0</span> In Progress</div>
+      <div class="stat-chip resolved"><span id="resolvedCount">0</span> Resolved</div>
     </div>
   </div>
 
-  <!-- Filter Bar -->
+  <!-- View Toggle + Filters -->
   <div class="filter-bar">
-    <div class="filter-left">
+    <div class="filter-left" style="gap:16px;">
+
+      <!-- Clusters / Reports toggle -->
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="clusters" onclick="switchView('clusters')">🗂 Clusters</button>
+        <button class="view-btn"        data-view="reports"  onclick="switchView('reports')">📄 Reports</button>
+      </div>
+
+      <!-- Status filter (shared) -->
       <span class="filter-label">STATUS</span>
       <div class="filter-tabs">
-        <button class="filter-tab active" data-value="All" onclick="setFilter(this)">All</button>
-        <button class="filter-tab" data-value="Pending" onclick="setFilter(this)">Pending</button>
-        <button class="filter-tab" data-value="Resolved" onclick="setFilter(this)">Resolved</button>
+        <button class="filter-tab active" data-value="All"           onclick="setFilter(this)">All</button>
+        <button class="filter-tab"        data-value="Pending"       onclick="setFilter(this)">Pending</button>
+        <button class="filter-tab"        data-value="Under Process" onclick="setFilter(this)">In Progress</button>
+        <button class="filter-tab"        data-value="Resolved"      onclick="setFilter(this)">Resolved</button>
       </div>
     </div>
     <div class="search-wrap">
       <span class="search-icon">⌕</span>
-      <input type="text" id="searchInput" class="search-input" placeholder="Search location or description…" oninput="filterReports()">
+      <input type="text" id="searchInput" class="search-input"
+             placeholder="Search location, description..."
+             oninput="renderActive()">
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Image</th>
-          <th>Location</th>
-          <th>Description</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="reportTable"></tbody>
-    </table>
-    <h2>Clustered Potholes</h2>
+  <!-- ── CLUSTERS SECTION ── -->
+  <div class="section visible" id="clusterSection">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Location</th>
+            <th>Reports</th>
+            <th>Avg Damage</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="clusterTable"></tbody>
+      </table>
+      <div class="table-empty" id="clusterEmpty">
+        <div class="empty-icon">🗂️</div>
+        <p>No clusters found.</p>
+      </div>
+    </div>
+  </div>
 
-<table>
-<thead>
-<tr>
-<th>Location</th>
-<th>Potholes</th>
-<th>Severity</th>
-</tr>
-</thead>
-
-<tbody id="clusterTable"></tbody>
-</table>
-
-    <div class="table-empty" id="emptyState">
-      <div class="empty-icon">📋</div>
-      <p>No reports found matching the current filter.</p>
+  <!-- ── INDIVIDUAL REPORTS SECTION ── -->
+  <div class="section" id="reportSection">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Image</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Description</th>
+            <th>Damage</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reportTable"></tbody>
+      </table>
+      <div class="table-empty" id="reportEmpty">
+        <div class="empty-icon">📋</div>
+        <p>No reports found matching the current filter.</p>
+      </div>
     </div>
   </div>
 
 </main>
 
-<script>
-  // Expose filter state for adminreport.js
-  window._activeFilter = 'All';
+<!-- ══════════════════════════════
+     CLUSTER DETAIL MODAL
+══════════════════════════════ -->
+<div class="modal-overlay" id="clusterModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
 
-  function setFilter(btn) {
-    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    window._activeFilter = btn.dataset.value;
-    filterReports();
-  }
-</script>
+    <!-- Header -->
+    <div class="modal-head">
+      <div class="modal-head-row">
+        <div class="modal-cluster-id">CLUSTER <span id="modalClusterId">#—</span></div>
+        <div class="modal-meta-row">
+          <span id="modalClusterStatus" class="cs-badge"></span>
+          <span id="modalClusterTier"   class="tier-badge"></span>
+        </div>
+      </div>
+      <div style="font-size:13px; color:var(--text-2);">
+        📍 <span id="modalClusterCoords">—</span>
+      </div>
+    </div>
+
+    <!-- Info cards -->
+    <div class="cluster-info-grid">
+      <div class="info-card">
+        <div class="info-card-label">📊 Avg Damage Score</div>
+        <div class="info-card-value" id="modalAvgScore">—</div>
+        <div style="margin-top:8px; height:4px; background:var(--surface-3); border-radius:2px; overflow:hidden;">
+          <div id="modalScoreBar" style="height:100%; border-radius:2px; transition:width 0.5s;"></div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">📁 Total Reports</div>
+        <div class="info-card-value" id="modalReportCount">—</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">🕐 Created At</div>
+        <div class="info-card-value" style="font-size:13px;" id="modalCreatedAt">—</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">🔄 Last Updated</div>
+        <div class="info-card-value" style="font-size:13px;" id="modalModifiedAt">—</div>
+      </div>
+    </div>
+
+    <!-- Reports in this cluster -->
+    <div class="modal-section-title">REPORTS IN THIS CLUSTER</div>
+    <div class="cluster-reports-wrap" id="modalReportsList"></div>
+
+    <!-- Status update + delete -->
+    <div class="status-select-wrap">
+      <span class="status-label">Update Status:</span>
+      <select class="status-select" id="modalStatusSelect">
+        <option value="Pending">Pending</option>
+        <option value="Under Process">Under Process</option>
+        <option value="Resolved">Resolved</option>
+      </select>
+      <button class="btn-update-status" onclick="updateClusterStatus()">Save Status</button>
+      <button class="btn-delete-cluster" onclick="deleteCluster()">🗑 Delete Cluster</button>
+    </div>
+  </div>
+</div>
+
 <script src="./script/adminreport.js"></script>
 </body>
 </html>

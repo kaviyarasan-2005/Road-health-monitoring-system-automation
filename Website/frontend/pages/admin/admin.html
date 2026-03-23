@@ -5,6 +5,243 @@
   <title>Admin Dashboard - Road Monitor</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/adminStyle.css">
+  <style>
+    /* ── Toggle Pill ── */
+    .type-toggle {
+      display: flex;
+      align-items: center;
+      background: var(--surface-2);
+      border: 1px solid var(--border-md);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 2px;
+    }
+    .toggle-btn {
+      padding: 6px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border 0.18s;
+      border: 1px solid transparent;
+    }
+    .toggle-btn.active {
+      background: rgba(0,180,255,0.15);
+      color: var(--blue-bright);
+      border-color: var(--border-md);
+    }
+    .toggle-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+    }
+
+    /* ── 24h live badge ── */
+    .badge-24h {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: var(--green);
+      background: rgba(0,245,147,0.08);
+      border: 1px solid rgba(0,245,147,0.2);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    .badge-24h::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse24 1.6s infinite;
+    }
+    @keyframes pulse24 {
+      0%,100% { opacity:1; } 50% { opacity:0.3; }
+    }
+
+    .table-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Damage tier badges ── */
+    .tier-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .tier-Good     { background:rgba(0,245,147,0.1);  color:#00f593; border:1px solid rgba(0,245,147,0.2); }
+    .tier-Fair     { background:rgba(0,180,255,0.1);  color:#00b4ff; border:1px solid rgba(0,180,255,0.2); }
+    .tier-Poor     { background:rgba(255,170,0,0.1);  color:#ffaa00; border:1px solid rgba(255,170,0,0.2); }
+    .tier-Severe   { background:rgba(255,120,0,0.1);  color:#ff7800; border:1px solid rgba(255,120,0,0.2); }
+    .tier-Critical { background:rgba(255,92,92,0.12); color:#ff5c5c; border:1px solid rgba(255,92,92,0.25); }
+
+    /* ── Type chips ── */
+    .type-chip {
+      display:inline-block; padding:3px 10px; border-radius:20px;
+      font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+    }
+    .type-vehicle { background:rgba(0,180,255,0.1); color:var(--blue-bright); border:1px solid var(--border-md); }
+    .type-user    { background:rgba(0,245,147,0.08); color:var(--green); border:1px solid rgba(0,245,147,0.18); }
+
+    /* ── View button ── */
+    .btn-view {
+      padding:5px 14px;
+      border:1px solid var(--border-md);
+      background:var(--surface-2);
+      color:var(--blue-bright);
+      font-family:'DM Sans',sans-serif;
+      font-size:11px; font-weight:600; letter-spacing:0.5px;
+      border-radius:6px; cursor:pointer;
+      transition:background 0.18s, border-color 0.18s;
+    }
+    .btn-view:hover { background:rgba(0,180,255,0.12); border-color:var(--blue-bright); }
+
+    /* ════════════════════
+       DETAIL MODAL
+    ════════════════════ */
+    .modal-overlay {
+      display:none;
+      position:fixed; inset:0;
+      background:rgba(5,10,18,0.85);
+      backdrop-filter:blur(7px);
+      z-index:200;
+      align-items:center;
+      justify-content:center;
+    }
+    .modal-overlay.open { display:flex; }
+
+    .modal-box {
+      background:var(--surface);
+      border:1px solid var(--border-md);
+      border-radius:16px;
+      width:780px;
+      max-width:96vw;
+      max-height:92vh;
+      overflow-y:auto;
+      position:relative;
+      box-shadow:0 28px 90px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,180,255,0.07);
+    }
+    .modal-box::-webkit-scrollbar { width:4px; }
+    .modal-box::-webkit-scrollbar-thumb { background:var(--border-md); border-radius:2px; }
+
+    .modal-close {
+      position:absolute; top:14px; right:16px;
+      background:var(--surface-3);
+      border:1px solid var(--border);
+      color:var(--text-2);
+      width:30px; height:30px;
+      border-radius:7px; font-size:14px;
+      cursor:pointer; display:flex;
+      align-items:center; justify-content:center;
+      transition:background 0.15s, color 0.15s;
+      z-index:2;
+    }
+    .modal-close:hover { background:rgba(255,92,92,0.15); color:var(--red); border-color:rgba(255,92,92,0.3); }
+
+    .modal-img-wrap {
+      width:100%; height:260px;
+      overflow:hidden;
+      border-radius:16px 16px 0 0;
+      position:relative;
+    }
+    .modal-img-wrap img {
+      width:100%; height:100%;
+      object-fit:cover; display:block;
+    }
+    .modal-img-overlay {
+      position:absolute; inset:0;
+      background:linear-gradient(to bottom, transparent 45%, var(--surface) 100%);
+    }
+
+    .modal-body { padding:22px 28px 28px; }
+
+    .modal-title-row {
+      display:flex; align-items:center;
+      justify-content:space-between;
+      margin-bottom:20px;
+      flex-wrap:wrap; gap:10px;
+    }
+    .modal-report-id {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:26px; letter-spacing:3px;
+      color:var(--text);
+    }
+    .modal-report-id span { color:var(--blue-bright); }
+    .modal-badges { display:flex; gap:8px; flex-wrap:wrap; }
+
+    .modal-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-bottom:20px;
+    }
+    .modal-field {
+      background:var(--surface-2);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:14px 16px;
+    }
+    .modal-field.full { grid-column:span 2; }
+    .modal-field-label {
+      font-size:9px; font-weight:600;
+      letter-spacing:2px; color:var(--muted);
+      margin-bottom:6px; text-transform:uppercase;
+    }
+    .modal-field-value {
+      font-size:14px; font-weight:400;
+      color:var(--text); line-height:1.5;
+    }
+
+    /* damage progress bar */
+    .dmg-bar-track {
+      margin-top:8px; height:5px;
+      background:var(--surface-3);
+      border-radius:3px; overflow:hidden;
+    }
+    .dmg-bar-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+
+    .modal-actions {
+      display:flex; gap:10px;
+      padding-top:20px;
+      border-top:1px solid var(--border);
+    }
+    .btn-modal-resolve, .btn-modal-delete {
+      flex:1; padding:10px;
+      font-family:'DM Sans',sans-serif;
+      font-size:13px; font-weight:600;
+      border-radius:8px; cursor:pointer;
+      transition:background 0.18s;
+    }
+    .btn-modal-resolve {
+      background:rgba(0,245,147,0.1); border:1px solid rgba(0,245,147,0.25); color:var(--green);
+    }
+    .btn-modal-resolve:hover { background:rgba(0,245,147,0.18); }
+    .btn-modal-delete {
+      background:rgba(255,92,92,0.08); border:1px solid rgba(255,92,92,0.2); color:var(--red);
+    }
+    .btn-modal-delete:hover { background:rgba(255,92,92,0.15); }
+
+    /* empty inline */
+    .no-records td {
+      text-align:center; color:var(--muted);
+      font-size:13px; padding:40px;
+    }
+  </style>
 </head>
 <body>
 
@@ -24,25 +261,19 @@
     <span class="nav-section-label">NAVIGATION</span>
     <ul>
       <li class="active">
-        <a href="./admin.html">
-          <span class="nav-icon">⬛</span> Dashboard
-        </a>
+        <a href="./admin.html"><span class="nav-icon">⬛</span> Dashboard</a>
       </li>
       <li>
-        <a href="./report.html">
-          <span class="nav-icon">📋</span> Reports
-        </a>
+        <a href="./report.html"><span class="nav-icon">📋</span> Reports</a>
       </li>
-       <li><a href="../admin/map.html"    class="nav-link active"><span class="nav-icon">🗺️</span> Cluster Map</a></li> 
+      <li>
+        <a href="../admin/map.html"><span class="nav-icon">🗺️</span> Cluster Map</a>
+      </li>
     </ul>
-    
-
     <span class="nav-section-label" style="margin-top:24px;">SYSTEM</span>
     <ul>
       <li>
-        <a href="../login.html" class="nav-logout">
-          <span class="nav-icon">⏻</span> Logout
-        </a>
+        <a href="../login.html" class="nav-logout"><span class="nav-icon">⏻</span> Logout</a>
       </li>
     </ul>
   </nav>
@@ -58,7 +289,6 @@
 <!-- Main Content -->
 <div class="main-content">
 
-  <!-- Header -->
   <header class="topbar">
     <div class="topbar-left">
       <h1 class="page-title">ADMIN DASHBOARD</h1>
@@ -73,7 +303,7 @@
     </div>
   </header>
 
-  <!-- Stat Cards -->
+  <!-- Stat Cards (counts all reports, not just 24h) -->
   <div class="cards">
     <div class="card card-total">
       <div class="card-label">TOTAL REPORTS</div>
@@ -97,10 +327,17 @@
     <div class="table-header">
       <div class="table-title-wrap">
         <h2 class="table-title">RECENT REPORTS</h2>
+        <span class="badge-24h">LAST 24H</span>
         <span class="table-count" id="tableCount">0 entries</span>
       </div>
       <div class="table-actions">
-        <input class="search-input" type="text" id="searchInput" placeholder="🔍  Search reports…">
+        <!-- Type Toggle -->
+        <div class="type-toggle">
+          <button class="toggle-btn active" data-type="all"     onclick="setFilter('all')">All</button>
+          <button class="toggle-btn"        data-type="vehicle" onclick="setFilter('vehicle')">🚗 Vehicle</button>
+          <button class="toggle-btn"        data-type="user"    onclick="setFilter('user')">👤 User</button>
+        </div>
+        <input class="search-input" type="text" id="searchInput" placeholder="🔍  Search reports...">
       </div>
     </div>
 
@@ -110,8 +347,11 @@
           <tr>
             <th>#</th>
             <th>Image</th>
+            <th>Type</th>
             <th>Location</th>
+            <th>Damage</th>
             <th>Status</th>
+            <th>Time</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -119,20 +359,81 @@
       </table>
       <div class="table-empty" id="emptyState">
         <div class="empty-icon">🗂️</div>
-        <p>No reports available</p>
+        <p>No reports in the last 24 hours</p>
       </div>
     </div>
   </div>
 
 </div>
 
+<!-- ═══════════ REPORT DETAIL MODAL ═══════════ -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <div class="modal-img-wrap">
+      <img id="modalImage" src="" alt="Report Image">
+      <div class="modal-img-overlay"></div>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-title-row">
+        <div class="modal-report-id">REPORT <span id="modalId">#—</span></div>
+        <div class="modal-badges">
+          <span id="modalTypeBadge"   class="type-chip"></span>
+          <span id="modalStatusBadge" class="badge"></span>
+          <span id="modalTierBadge"   class="tier-badge"></span>
+        </div>
+      </div>
+
+      <div class="modal-grid">
+        <div class="modal-field">
+          <div class="modal-field-label">📍 Location</div>
+          <div class="modal-field-value" id="modalLocation">—</div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label">🕐 Reported At</div>
+          <div class="modal-field-value" id="modalCreatedAt">—</div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label">⚡ Damage Score</div>
+          <div class="modal-field-value" id="modalDamageScore">—</div>
+          <div class="dmg-bar-track">
+            <div class="dmg-bar-fill" id="modalDamageBar"></div>
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label">🔍 Detections</div>
+          <div class="modal-field-value" id="modalDetections">—</div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label">📌 Coordinates</div>
+          <div class="modal-field-value" id="modalCoords">—</div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-field-label">🔗 Cluster ID</div>
+          <div class="modal-field-value" id="modalCluster">—</div>
+        </div>
+        <div class="modal-field full">
+          <div class="modal-field-label">📝 Description</div>
+          <div class="modal-field-value" id="modalDescription">—</div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-resolve" onclick="resolveFromModal()">✅ Mark Resolved</button>
+        <button class="btn-modal-delete"  onclick="deleteFromModal()">🗑 Delete Report</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="script/adminScript.js"></script>
 <script>
-  // Live clock
   function updateClock() {
     const now = new Date();
     document.getElementById('liveClock').textContent =
-      now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   }
   updateClock();
   setInterval(updateClock, 1000);
