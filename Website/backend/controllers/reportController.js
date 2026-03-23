@@ -185,7 +185,7 @@ const getAllReports = (req, res) => {
 const getPublicReports = (req, res) => {
   db.query(
     `SELECT id, type, description, latitude, longitude, image_url,
-            damage_score, damage_tier, report_count, status, last_seen
+            damage_score, damage_tier, status, last_seen
      FROM reports ORDER BY last_seen DESC`,
     (err, results) => {
       if (err) return res.status(500).json({ error: 'Database error' });
