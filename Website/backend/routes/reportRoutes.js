@@ -8,6 +8,7 @@ const {
   getAllReports,
   getPublicReports,
   resolveReport,
+  getUserReports,
   getClusters,
   resolveCluster, 
 } = require('../controllers/reportController');
@@ -15,6 +16,9 @@ const {
 // Public routes
 router.post('/public/report', upload.single('image'), submitUserReport);
 router.get('/public/reports', getPublicReports);
+
+//user-specific route
+router.get('/user/:userId/reports', getUserReports);
 
 //vehicle routes
 router.post('/vehicle/report', upload.single('image'), submitVehicleReport);

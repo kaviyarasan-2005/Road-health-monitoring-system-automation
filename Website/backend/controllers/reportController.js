@@ -31,6 +31,7 @@
   async function callAIService(imagePath) {
     const formData = new FormData();
     formData.append('image', fs.createReadStream(imagePath));
+    console.log(process.env.AI_SERVICE_URL);
     const res = await axios.post(process.env.AI_SERVICE_URL, formData, {
       headers: formData.getHeaders(),
       timeout: 30000,
@@ -102,7 +103,7 @@
   // ─── Core Submit Logic (shared) ───────────────────────────────────────────────
   async function _submitReport(type, req, res) {
     try {
-      const { description, latitude, longitude } = req.body;
+      const { description, latitude, longitude, userId } = req.body;
 
       if (!latitude || !longitude || !req.file) {
         return res.status(400).json({ error: 'latitude, longitude, and image are required' });
@@ -122,6 +123,7 @@
       } else {
         try {
           const aiData  = await callAIService(req.file.path);
+          console.log('AI service response:', aiData);
           damageScore   = aiData.damage_score   || 0;
           damageTier    = aiData.damage_tier    || 'Good';
           numDetections = aiData.num_detections || 0;
@@ -144,10 +146,10 @@
       // Insert report — always a new record, never mutated
       db.query(
         `INSERT INTO reports
-          (type, description, latitude, longitude, image_url,
+          (type, description, latitude, longitude, image_url, user_id,
             damage_score, damage_tier, num_detections, cluster_id, status, last_seen)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
-        [type, description || null, lat, lng, imageUrl, damageScore, damageTier, numDetections, clusterId],
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())`,
+        [type, description || null, lat, lng, imageUrl, userId, damageScore, damageTier, numDetections, clusterId],
         (err, result) => {
           if (err) {
             console.error('DB insert error:', err);
@@ -194,6 +196,35 @@
       }
     );
   };
+
+  // ─── Get User specific Reports ───────────────────────────────────────────────────────
+  const getUserReports = (req, res) => {
+  const userId = req.params.userId;
+  
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  db.query(
+    `SELECT id, type, description, latitude, longitude, image_url,
+            damage_score, damage_tier, num_detections, status, last_seen
+     FROM reports
+     WHERE user_id = ?
+     ORDER BY last_seen DESC`,
+    [userId],
+    (err, results) => {
+      if (err) {
+        console.error('DB query error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'No reports found for this user' });
+      }
+      res.json(results);
+    }
+  );
+};
+
 
   // ─── Resolve Report ───────────────────────────────────────────────────────────
   const resolveReport = (req, res) => {
@@ -278,6 +309,7 @@ const resolveCluster = (req, res) => {
     getAllReports,
     getPublicReports,
     resolveReport,
+    getUserReports,
     getClusters,
     resolveCluster,
   };

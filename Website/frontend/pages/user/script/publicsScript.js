@@ -5,21 +5,27 @@ const closeBtn = document.getElementById("closeModal");
 const form = document.getElementById("reportForm");
 const message = document.getElementById("message");
 
-// Open modal
-openBtn.onclick = () => {
-modal.style.display = "block";
-};
+// Show logged-in user name in navbar
+function loadUserInfo() {
+  const name = localStorage.getItem('userName') || 'User';
 
-// Close modal
-closeBtn.onclick = () => {
-modal.style.display = "none";
-};
+  // Initials — take first letter of each word (max 2)
+  const initials = name
+    .split(' ')
+    .slice(0, 2)
+    .map(w => w[0].toUpperCase())
+    .join('');
 
-window.onclick = (event) => {
-if (event.target === modal) {
-modal.style.display = "none";
+  document.getElementById('navAvatar').textContent   = initials;
+  document.getElementById('navUserName').textContent = name;
 }
-};
+
+loadUserInfo();
+
+// Replace modal open/close handlers
+openBtn.onclick  = () => modal.classList.add('open');
+closeBtn.onclick = () => modal.classList.remove('open');
+window.onclick   = (e) => { if (e.target === modal) modal.classList.remove('open'); };
 
 
 form.addEventListener("submit", async (e) => {
@@ -48,6 +54,7 @@ form.addEventListener("submit", async (e) => {
   formData.append("latitude", lat);
   formData.append("longitude", lon);
   formData.append("image", file); 
+  formData.append("userId", localStorage.getItem("userId")); // Add user ID
 
   try {
     const res = await fetch("http://localhost:3000/api/public/report", {
@@ -93,7 +100,8 @@ const reportTable = document.getElementById("reportTable");
 // Load reports
 async function loadReports() {
   try {
-    const res = await fetch("http://localhost:3000/api/public/reports")
+    const res = await fetch(`http://localhost:3000/api/user/${localStorage.getItem("userId")}/reports`);
+    console.log("Fetch response:", res);
     const reports = await res.json();
 
     console.log("Reports:", reports);

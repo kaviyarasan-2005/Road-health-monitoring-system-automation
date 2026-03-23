@@ -659,3 +659,19 @@ textarea {
   .modal-content { padding: 28px 20px 22px; }
   th, td { padding: 10px 10px; }
 }
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(4,9,15,0.75);
+  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+}
+
+/* Change display:none to use flex when open */
+.modal.open {
+  display: flex;   /* ← was missing, causes off-center */
+}

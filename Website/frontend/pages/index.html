@@ -430,49 +430,6 @@ body {
   <p id="message"></p>
 </div>
 
-<script>
-// Ripple effect
-document.querySelector('.btn-signup').addEventListener('click', function(e) {
-  const btn = this;
-  const ripple = document.createElement('span');
-  ripple.classList.add('ripple');
-  const rect = btn.getBoundingClientRect();
-  const size = Math.max(rect.width, rect.height);
-  ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
-  btn.appendChild(ripple);
-  setTimeout(() => ripple.remove(), 600);
-});
-
-// Password strength
-const pwInput = document.getElementById('password');
-const bar = document.getElementById('strengthBar');
-const segs = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
-
-pwInput.addEventListener('input', () => {
-  const pw = pwInput.value;
-  bar.classList.toggle('visible', pw.length > 0);
-
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-
-  const levels = ['weak','fair','good','strong'];
-  segs.forEach((s, i) => {
-    s.className = 'strength-seg';
-    if (i < score) s.classList.add(levels[score - 1]);
-  });
-});
-
-// Form submit
-document.getElementById('signupForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const msg = document.getElementById('message');
-  msg.className = 'success';
-  msg.textContent = '✓ Account created successfully!';
-});
-</script>
-<script src="signup.js  "></script>
+<script src="signup.js"></script>
 </body>
 </html>
